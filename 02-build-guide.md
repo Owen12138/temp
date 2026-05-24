@@ -259,6 +259,11 @@ Put `cmpLeftRail` on every screen, anchored X=0 Y=0.
 
 ## Screen 2 · scrList (Use Case List)
 
+> **Build this screen using `07-scrlist-guide.md`** — it's the step-by-step
+> version of this section, with numbered Insert steps, full property tables
+> for every control, and a sanity check after each part. The summary below
+> is kept as a fast reference only; don't try to build from it alone.
+
 ### Control tree (right of the rail)
 
 ```
