@@ -1,22 +1,22 @@
-# BOA Canvas App — Use Case List Screen (scrList) Step-by-Step
+# BOA Canvas App — Use Case List Screen (srcList) Step-by-Step
 
-Use this guide to build the `scrList` (Use Case List) screen end to end.
+Use this guide to build the `srcList` (Use Case List) screen end to end.
 Each part is a small block of Insert + Property steps with a sanity check
 at the end. When you finish Part 7 you have a fully filterable list that
 opens to the detail screen.
 
 This guide assumes you have already completed:
 
-- `01-app-setup.md` — `App.OnStart` has set `theme`, `colUseCases`,
+- `01-app-setup.md` — `App.OnStart` has set `gblTheme`, `colUseCases`,
   `filterSearch`, `filterStatus`, `filterSBU`, `filterFY`, and the
   `cmpStatusPill` component exists. `App.Formulas` has the
   `filteredUseCases` named formula.
-- `06-left-rail-buttons-guide.md` — `conLeftRail` exists on `scrHome`
+- `06-left-rail-buttons-guide.md` — `conLeftRail` exists on `srcHome`
   (built as Buttons + Icons, not as a gallery).
-- The existing `02-build-guide.md` for `scrHome`'s `conHeader`
+- The existing `02-build-guide.md` for `srcHome`'s `conHeader`
   (X: `If(sideCollapsed, 64, 220)`, Y: `0`, Height: `52`, Fill:
-  `theme.Maroon`).
-- `scrNew` and `scrDetail` exist as named screens. Both can be blank
+  `gblTheme.Maroon`).
+- `srcNew` and `srcDetail` exist as named screens. Both can be blank
   stubs for now — you only need their names so `Navigate(...)` doesn't
   error.
 
@@ -26,22 +26,22 @@ This guide assumes you have already completed:
 
 ### Step 1 — Add the screen
 
-Top toolbar → **+ New screen** → **Blank**. Rename it `scrList` in the
-tree. Make sure it sits below `scrHome` in the tree (drag if needed).
+Top toolbar → **+ New screen** → **Blank**. Rename it `srcList` in the
+tree. Make sure it sits below `srcHome` in the tree (drag if needed).
 
-### Step 2 — Copy the rail and header from scrHome
+### Step 2 — Copy the rail and header from srcHome
 
-In the tree on `scrHome`:
+In the tree on `srcHome`:
 
 1. Click `conLeftRail`, **Ctrl+C**.
-2. Click `scrList` in the tree, **Ctrl+V**. The rail appears in the same
+2. Click `srcList` in the tree, **Ctrl+V**. The rail appears in the same
    X/Y because its formulas reference `Parent` and `sideCollapsed`.
-3. Repeat for `conHeader`: Ctrl+C on `scrHome` → click `scrList` →
+3. Repeat for `conHeader`: Ctrl+C on `srcHome` → click `srcList` →
    Ctrl+V.
 
 ### Step 3 — Create the page container
 
-On `scrList`, Insert → **Container** (the classic Container, not a
+On `srcList`, Insert → **Container** (the classic Container, not a
 horizontal/vertical responsive container).
 
 | Property | Value |
@@ -51,7 +51,7 @@ horizontal/vertical responsive container).
 | Y | `52` |
 | Width | `Parent.Width - If(sideCollapsed, 64, 220)` |
 | Height | `Parent.Height - 52` |
-| Fill | `theme.Bg` |
+| Fill | `gblTheme.Bg` |
 | BorderThickness | `0` |
 
 This is the canvas for the three blocks: title row, filter card, gallery
@@ -62,14 +62,14 @@ card. Every other control on this screen lives **inside** `conPage`.
 Press **F5**. You should see:
 
 - [ ] Left rail visible. The "View/Edit Use Cases" row tints maroon
-      (because the active screen name `scrList` matches the formula
+      (because the active screen name `srcList` matches the formula
       from guide 06 Step 5).
 - [ ] Maroon header strip across the top, to the right of the rail.
-- [ ] Below the header, the area is the light gray `theme.Bg`
+- [ ] Below the header, the area is the light gray `gblTheme.Bg`
       (#F5F5F5).
 
-If the page is white, double-check `conPage.Fill = theme.Bg`. If the
-rail or header are missing, redo Step 2 on the `scrList` tree.
+If the page is white, double-check `conPage.Fill = gblTheme.Bg`. If the
+rail or header are missing, redo Step 2 on the `srcList` tree.
 
 ---
 
@@ -106,8 +106,8 @@ Inside `conTitleRow`, Insert → **Label**.
 | Height | `30` |
 | Size | `22` |
 | FontWeight | `FontWeight.Semibold` |
-| Color | `theme.Ink` |
-| Font | `theme.FontFamily` |
+| Color | `gblTheme.Ink` |
+| Font | `gblTheme.FontFamily` |
 
 ### Step 7 — Count chip
 
@@ -122,8 +122,8 @@ Inside `conTitleRow`, Insert → **Label**.
 | Width | `140` |
 | Height | `20` |
 | Size | `14` |
-| Color | `theme.Ink3` |
-| Font | `theme.FontFamily` |
+| Color | `gblTheme.Ink3` |
+| Font | `gblTheme.FontFamily` |
 
 ### Step 8 — Subtitle
 
@@ -138,8 +138,8 @@ Inside `conTitleRow`, Insert → **Label**.
 | Width | `700` |
 | Height | `18` |
 | Size | `13` |
-| Color | `theme.Ink3` |
-| Font | `theme.FontFamily` |
+| Color | `gblTheme.Ink3` |
+| Font | `gblTheme.FontFamily` |
 
 ### Step 9 — Export button (secondary style)
 
@@ -155,12 +155,12 @@ Inside `conTitleRow`, Insert → **Button**.
 | Height | `36` |
 | Size | `13` |
 | FontWeight | `FontWeight.Semibold` |
-| Fill | `theme.Surface` |
+| Fill | `gblTheme.Surface` |
 | HoverFill | `RGBA(245, 230, 233, 1)` |
 | PressedFill | `RGBA(235, 220, 225, 1)` |
-| Color | `theme.Maroon` |
-| HoverColor | `theme.Maroon` |
-| BorderColor | `theme.Maroon` |
+| Color | `gblTheme.Maroon` |
+| HoverColor | `gblTheme.Maroon` |
+| BorderColor | `gblTheme.Maroon` |
 | BorderThickness | `1` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
 | OnSelect | `Notify("Export queued. You'll get a Teams ping when the file is ready.", NotificationType.Success)` |
@@ -179,14 +179,14 @@ Inside `conTitleRow`, Insert → **Button**.
 | Height | `36` |
 | Size | `13` |
 | FontWeight | `FontWeight.Semibold` |
-| Fill | `theme.Maroon` |
-| HoverFill | `theme.MaroonDeep` |
-| PressedFill | `theme.MaroonDeep` |
+| Fill | `gblTheme.Maroon` |
+| HoverFill | `gblTheme.MaroonDeep` |
+| PressedFill | `gblTheme.MaroonDeep` |
 | Color | `White` |
 | HoverColor | `White` |
 | BorderThickness | `0` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| OnSelect | `Navigate(scrNew, ScreenTransition.None)` |
+| OnSelect | `Navigate(srcNew, ScreenTransition.None)` |
 
 ### Step 11 — Sanity check
 
@@ -198,8 +198,8 @@ Preview. You should see:
 - [ ] Two buttons on the right: Export (white, maroon border) and
       "+ New Use Case" (solid maroon).
 - [ ] Hover on Export tints faintly pink; hover on New darkens to
-      `theme.MaroonDeep`.
-- [ ] Clicking "+ New Use Case" navigates to `scrNew` (use the rail to
+      `gblTheme.MaroonDeep`.
+- [ ] Clicking "+ New Use Case" navigates to `srcNew` (use the rail to
       return).
 
 ---
@@ -221,9 +221,9 @@ Inside `conPage`, Insert → **Container**.
 | Y | `conTitleRow.Y + conTitleRow.Height + 16` |
 | Width | `Parent.Width - 48` |
 | Height | `92` |
-| Fill | `theme.Surface` |
+| Fill | `gblTheme.Surface` |
 | BorderThickness | `1` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
 
 ### Step 13 — Column layout (responsive)
@@ -276,7 +276,7 @@ Inside `conFilterCard`, Insert → **Label** (caption first):
 | Height | `14` |
 | Size | `11` |
 | FontWeight | `FontWeight.Semibold` |
-| Color | `theme.Ink3` |
+| Color | `gblTheme.Ink3` |
 
 Then Insert → **Text input**:
 
@@ -289,9 +289,9 @@ Then Insert → **Text input**:
 | Width | `(Parent.Width - 14 * 7) / 6` |
 | Height | `40` |
 | Size | `13` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
-| Color | `theme.Ink` |
+| Color | `gblTheme.Ink` |
 | OnChange | `Set(filterSearch, Self.Text)` |
 
 ### Step 15 — Status dropdown + caption
@@ -312,9 +312,9 @@ Dropdown:
 | Items | `["All Statuses","Rationale","Data Prep","Development","Testing","Deployment","Monitoring","Decommissioning"]` |
 | Default | `filterStatus` |
 | OnChange | `Set(filterStatus, Self.Selected.Value)` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
-| Color | `theme.Ink` |
+| Color | `gblTheme.Ink` |
 
 ### Step 16 — SBU dropdown + caption
 
@@ -333,7 +333,7 @@ Dropdown:
 | Items | `["All SBUs","PBB","Capital Markets","Wealth","Commercial","Direct Banking"]` |
 | Default | `filterSBU` |
 | OnChange | `Set(filterSBU, Self.Selected.Value)` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
 
 ### Step 17 — FY dropdown + caption
@@ -353,7 +353,7 @@ Dropdown:
 | Items | `["F26","F25","F24"]` |
 | Default | `filterFY` |
 | OnChange | `Set(filterFY, Self.Selected.Value)` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
 
 ### Step 18 — Owner dropdown + caption
@@ -371,16 +371,17 @@ Dropdown:
 | Width | `txtSearch.Width` |
 | Height | `40` |
 | Items | `Distinct(colUseCases, Owner)` |
+| Default | `filterOwner` |
 | AllowEmptySelection | `true` |
-| BorderColor | `theme.Border` |
+| OnChange | `Set(filterOwner, If(IsBlank(Self.Selected), "", Self.Selected.Value))` |
+| BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
 
-> Owner isn't wired into `filteredUseCases` yet (App.Formulas in
-> `01-app-setup.md` doesn't reference it). The dropdown still works
-> visually. When you decide Owner should filter the list, add
-> `OnChange: Set(filterOwner, Self.Selected.Value)` to `ddOwner`,
-> initialize `filterOwner` in App.OnStart, and extend `filteredUseCases`
-> with `(filterOwner = "" || Owner = filterOwner)`.
+> Owner is wired into `filteredUseCases` via the `(filterOwner = "" ||
+> Owner = filterOwner)` clause in `App.Formulas` (see `01-app-setup.md`
+> section 3). `filterOwner` is initialized to `""` in App.OnStart, so
+> the dropdown starts unselected and shows every row. Deselecting the
+> dropdown (or hitting Reset) clears `filterOwner` back to `""`.
 
 ### Step 19 — Reset button
 
@@ -396,14 +397,14 @@ Inside `conFilterCard`, Insert → **Button**.
 | Height | `40` |
 | Size | `13` |
 | FontWeight | `FontWeight.Semibold` |
-| Fill | `theme.Surface` |
+| Fill | `gblTheme.Surface` |
 | HoverFill | `RGBA(245, 230, 233, 1)` |
-| Color | `theme.Maroon` |
-| HoverColor | `theme.Maroon` |
-| BorderColor | `theme.Maroon` |
+| Color | `gblTheme.Maroon` |
+| HoverColor | `gblTheme.Maroon` |
+| BorderColor | `gblTheme.Maroon` |
 | BorderThickness | `1` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| OnSelect | `Set(filterSearch, ""); Reset(txtSearch); Set(filterStatus, "All Statuses"); Set(filterSBU, "All SBUs"); Set(filterFY, "F26"); Reset(ddOwner)` |
+| OnSelect | `Set(filterSearch, ""); Reset(txtSearch); Set(filterStatus, "All Statuses"); Set(filterSBU, "All SBUs"); Set(filterFY, "F26"); Set(filterOwner, ""); Reset(ddOwner)` |
 
 ### Step 20 — Sanity check
 
@@ -442,9 +443,9 @@ Inside `conPage`, Insert → **Container**.
 | Y | `conFilterCard.Y + conFilterCard.Height + 16` |
 | Width | `Parent.Width - 48` |
 | Height | `Parent.Height - Self.Y - 24` |
-| Fill | `theme.Surface` |
+| Fill | `gblTheme.Surface` |
 | BorderThickness | `1` |
-| BorderColor | `theme.Border` |
+| BorderColor | `gblTheme.Border` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
 
 ### Step 22 — Header strip
@@ -458,7 +459,7 @@ Inside `conGallery`, Insert → **Layout** → **Horizontal container**.
 | Y | `0` |
 | Width | `Parent.Width` |
 | Height | `36` |
-| Fill | `theme.Maroon` |
+| Fill | `gblTheme.Maroon` |
 | BorderThickness | `0` |
 | LayoutDirection | `LayoutDirection.Horizontal` |
 | LayoutGap | `0` |
@@ -511,7 +512,7 @@ All nine share these properties:
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
 | Color | `White` |
-| Font | `theme.FontFamily` |
+| Font | `gblTheme.FontFamily` |
 | PaddingLeft | `0` |
 
 > **Adding or removing a column later:** just insert a new label
@@ -559,7 +560,7 @@ Inside `conGallery`, Insert → **Gallery** → **Blank vertical**.
 ```powerfx
 Set(selectedUC, ThisItem);
 Set(currentSection, "Info");
-Navigate(scrDetail, ScreenTransition.None)
+Navigate(srcDetail, ScreenTransition.None)
 ```
 
 The 40 reserved at the bottom of Height is for `conGalleryFooter` in
@@ -610,7 +611,7 @@ Then, still inside the template (NOT inside `conRow`), Insert →
 | Y | `Parent.TemplateHeight - 1` |
 | Width | `Parent.TemplateWidth` |
 | Height | `1` |
-| Fill | `theme.Border` |
+| Fill | `gblTheme.Border` |
 | BorderThickness | `0` |
 
 ### Step 27 — Row columns
@@ -625,17 +626,17 @@ labels) — they're empty wrappers that get filled in Steps 28 and 29.
 
 | # | Control type | Name | Text | FillPortions | Size | Color | FontWeight |
 |---|--------------|------|------|--------------|------|-------|-----------|
-| 1 | Label | `lblUCID` | `ThisItem.UCID` | `100` | 12 | `theme.Ink3` | `FontWeight.Normal` |
-| 2 | Label | `lblName` | `ThisItem.Name` | `320` | 13 | `theme.Ink` | `FontWeight.Semibold` |
-| 3 | Label | `lblSBU` | `ThisItem.SBU` | `120` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 4 | Label | `lblOwner` | `ThisItem.Owner` | `160` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 1 | Label | `lblUCID` | `ThisItem.UCID` | `100` | 12 | `gblTheme.Ink3` | `FontWeight.Normal` |
+| 2 | Label | `lblName` | `ThisItem.Name` | `320` | 13 | `gblTheme.Ink` | `FontWeight.Semibold` |
+| 3 | Label | `lblSBU` | `ThisItem.SBU` | `120` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
+| 4 | Label | `lblOwner` | `ThisItem.Owner` | `160` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
 | 5 | Container (classic) | `conStatusCol` | — | `150` | — | — | — |
-| 6 | Label | `lblFY` | `ThisItem.FY` | `60` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 7 | Label | `lblValue` | (see below) | `130` | 13 | `theme.Ink` | `FontWeight.Normal` |
-| 8 | Label | `lblUpdated` | (see below) | `110` | 12 | `theme.Ink2` | `FontWeight.Normal` |
+| 6 | Label | `lblFY` | `ThisItem.FY` | `60` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
+| 7 | Label | `lblValue` | (see below) | `130` | 13 | `gblTheme.Ink` | `FontWeight.Normal` |
+| 8 | Label | `lblUpdated` | (see below) | `110` | 12 | `gblTheme.Ink2` | `FontWeight.Normal` |
 | 9 | Container (classic) | `conActionCol` | — | `80` | — | — | — |
 
-All 7 labels share Font=`theme.FontFamily` and PaddingLeft=`0`.
+All 7 labels share Font=`gblTheme.FontFamily` and PaddingLeft=`0`.
 
 The two wrapper Containers (`conStatusCol` and `conActionCol`) need
 just two properties: `FillPortions` (from the table) and
@@ -700,10 +701,10 @@ Click `conActionCol` in the tree, then Insert → **Button**.
 | Height | `28` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
-| Fill | `theme.Surface` |
+| Fill | `gblTheme.Surface` |
 | HoverFill | `RGBA(245, 230, 233, 1)` |
-| Color | `theme.Maroon` |
-| BorderColor | `theme.Maroon` |
+| Color | `gblTheme.Maroon` |
+| BorderColor | `gblTheme.Maroon` |
 | BorderThickness | `1` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
 | OnSelect | `Select(Parent.Parent.Parent)` |
@@ -723,7 +724,7 @@ Preview:
       Status pill, FY, `$X.XM` value (or `"—"`), `"N days ago"`, and
       a View button.
 - [ ] Clicking a row (anywhere — label, pill, or button) opens
-      `scrDetail` with `selectedUC` populated.
+      `srcDetail` with `selectedUC` populated.
 - [ ] Typing `"Mortgage"` in Search filters to 1 row.
 - [ ] Setting Status to `"Development"` filters to 2 rows.
 - [ ] Reset → all 10 rows return.
@@ -779,7 +780,7 @@ Add a 1px top border. Inside `conGalleryFooter`, Insert → **Rectangle**:
 | Y | `0` |
 | Width | `Parent.Width` |
 | Height | `1` |
-| Fill | `theme.Border` |
+| Fill | `gblTheme.Border` |
 | BorderThickness | `0` |
 
 ### Step 32 — Count label (left)
@@ -795,7 +796,7 @@ Inside `conGalleryFooter`, Insert → **Label**.
 | Width | `300` |
 | Height | `20` |
 | Size | `12` |
-| Color | `theme.Ink3` |
+| Color | `gblTheme.Ink3` |
 
 ### Step 33 — Scroll-status dot
 
@@ -810,7 +811,7 @@ find Circle, insert a Rectangle and set RadiusTop/Bottom Left/Right to
 | Y | `(Parent.Height - Self.Height) / 2` |
 | Width | `7` |
 | Height | `7` |
-| Fill | `theme.Maroon` |
+| Fill | `gblTheme.Maroon` |
 | BorderThickness | `0` |
 
 ### Step 34 — Scroll-status label
@@ -827,7 +828,7 @@ Inside `conGalleryFooter`, Insert → **Label**.
 | Height | `20` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
-| Color | `theme.Ink2` |
+| Color | `gblTheme.Ink2` |
 
 ### Step 35 — Sanity check
 
@@ -844,7 +845,7 @@ Preview:
 
 ## Part 7 — Full-screen sanity check
 
-Press **F5** on `scrList` and walk through:
+Press **F5** on `srcList` and walk through:
 
 - [ ] Header (top), rail (left), and content area visible.
 - [ ] Title row: `"View/Edit Use Cases"` + `"10 use cases"` + subtitle.
@@ -856,14 +857,14 @@ Press **F5** on `scrList` and walk through:
 - [ ] Type `"Mortgage"` in Search → 1 row.
 - [ ] Set Status to `"Monitoring"` → 2 rows.
 - [ ] Click Reset → 10 rows again.
-- [ ] Click any row → navigates to `scrDetail` with `selectedUC`
+- [ ] Click any row → navigates to `srcDetail` with `selectedUC`
       populated.
 - [ ] Click the rail's hamburger → rail collapses to 64px; content
       expands; gallery still works (last column may now extend past
       the visible area if you kept the wide widths — see Step 23
       note).
 
-If all 9 boxes pass, `scrList` is done. Move on to `scrDetail` (Screen 3
+If all 9 boxes pass, `srcList` is done. Move on to `srcDetail` (Screen 3
 in `02-build-guide.md`).
 
 ---
@@ -884,8 +885,8 @@ in `02-build-guide.md`).
 | Row click does nothing | OnSelect is on a template control instead of the gallery itself | Click `galUseCases` in the tree (not a child of it), put the formula from Step 25 in its `OnSelect`. |
 | View button doesn't navigate | `btnView.OnSelect` is `Select(Parent)` (left over from the old non-container layout) | Update to `Select(Parent.Parent.Parent)` — button → `conActionCol` → `conRow` → `galUseCases` (Step 29). |
 | Reset doesn't clear search text | `Reset(txtSearch)` missing | Add `Reset(txtSearch);` to `btnReset.OnSelect` alongside `Set(filterSearch, "");`. |
-| `Navigate(scrNew, ...)` errors | `scrNew` screen doesn't exist yet | Create a blank screen named exactly `scrNew`. You'll build it out in `02-build-guide.md` section 4. |
-| `Navigate(scrDetail, ...)` errors | Same as above for `scrDetail` | Create a blank screen named exactly `scrDetail`. |
+| `Navigate(srcNew, ...)` errors | `srcNew` screen doesn't exist yet | Create a blank screen named exactly `srcNew`. You'll build it out in `02-build-guide.md` section 4. |
+| `Navigate(srcDetail, ...)` errors | Same as above for `srcDetail` | Create a blank screen named exactly `srcDetail`. |
 | Export button doesn't show a notification | `Notify(...)` only fires in app preview, not Studio edit mode | Press F5, then click. |
 | Hover on rows does nothing visible | You're testing in Studio edit mode | Press F5 — hover effects only run in preview. |
 | Filter card is too short / tall | Wrong Height on `conFilterCard` | Should be exactly `92`. |

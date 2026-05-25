@@ -23,18 +23,18 @@ Turn ON/OFF these features in Settings → Upcoming features:
 - Named formulas: **ON**
 - Enhanced delegation (if shown): **ON**
 - **Allow canvas components to navigate: ON** — without this, any
-  `Navigate(scrHome, ...)` call inside a component errors because the
+  `Navigate(srcHome, ...)` call inside a component errors because the
   component cannot see screen objects from the main app.
 
 ## 2. Screen order in the tree view
 
 **Do this before pasting any formulas.**
 
-In the left Tree view panel, make sure `scrHome` is the topmost screen
+In the left Tree view panel, make sure `srcHome` is the topmost screen
 (drag it or right-click → Move up). Canvas always renders the first screen
-in the tree while `App.OnStart` is still running. If `scrDetail` or another
+in the tree while `App.OnStart` is still running. If `srcDetail` or another
 screen is on top, its controls try to evaluate `selectedUC.Name`,
-`theme.Maroon`, etc. before those variables exist — causing red formula
+`gblTheme.Maroon`, etc. before those variables exist — causing red formula
 errors in the App Checker.
 
 ## 3. App.OnStart
@@ -45,7 +45,7 @@ Select the `App` node in the tree view, set `OnStart` to:
 // ──────────────────────────────────────────────────────────────
 // THEME (matches the HTML prototype's --maroon palette)
 // ──────────────────────────────────────────────────────────────
-Set(theme, {
+Set(gblTheme, {
     Maroon:       RGBA(122, 26, 46, 1),       // #7A1A2E
     MaroonDeep:   RGBA(94, 19, 34, 1),        // #5E1322
     MaroonLight:  RGBA(242, 230, 233, 1),     // #F2E6E9
@@ -74,13 +74,13 @@ Set(theme, {
 // LOOKUPS (will become Dataverse choice columns later)
 // ──────────────────────────────────────────────────────────────
 ClearCollect(colStatus,
-    { Code: "Rationale",      Label: "Rationale",       Color: theme.Ink3 },
-    { Code: "DataPrep",       Label: "Data Prep",       Color: theme.Ink3 },
-    { Code: "Development",    Label: "Development",     Color: theme.Info },
-    { Code: "Testing",        Label: "Testing",         Color: theme.Warn },
-    { Code: "Deployment",     Label: "Deployment",      Color: theme.Ok },
-    { Code: "Monitoring",     Label: "Monitoring",      Color: theme.Monitor },
-    { Code: "Decommissioning",Label: "Decommissioning", Color: theme.Decom }
+    { Code: "Rationale",      Label: "Rationale",       Color: gblTheme.Ink3 },
+    { Code: "DataPrep",       Label: "Data Prep",       Color: gblTheme.Ink3 },
+    { Code: "Development",    Label: "Development",     Color: gblTheme.Info },
+    { Code: "Testing",        Label: "Testing",         Color: gblTheme.Warn },
+    { Code: "Deployment",     Label: "Deployment",      Color: gblTheme.Ok },
+    { Code: "Monitoring",     Label: "Monitoring",      Color: gblTheme.Monitor },
+    { Code: "Decommissioning",Label: "Decommissioning", Color: gblTheme.Decom }
 );
 
 ClearCollect(colSBU,
@@ -220,7 +220,7 @@ Set(currentUser, { FullName: "Owen Huang", Initials: "OH" });
 // Initialize selectedUC as a TYPED blank — NOT Blank() — so Power Apps
 // can resolve selectedUC.Name, selectedUC.UCID etc. on all screens
 // before a real record is selected. Using Blank() leaves the type
-// unknown and causes App Checker errors on scrDetail controls.
+// unknown and causes App Checker errors on srcDetail controls.
 Set(selectedUC, {
     UCID: "", Name: "", SBU: "", Owner: "", OwnerInitials: "",
     Status: "", FY: "", RealizedValue: 0, EstimatedValue: 0,
@@ -234,9 +234,10 @@ Set(filterSearch, "");
 Set(filterStatus, "All Statuses");
 Set(filterSBU, "All SBUs");
 Set(filterFY, "F26");
+Set(filterOwner, "");
 
 // Navigate to landing
-Navigate(scrHome, ScreenTransition.None);
+Navigate(srcHome, ScreenTransition.None);
 ```
 
 ## 3. Named formulas (App.Formulas)
@@ -255,7 +256,8 @@ filteredUseCases =
          filterSearch in Owner) &&
         (filterStatus = "All Statuses" || Status = filterStatus) &&
         (filterSBU    = "All SBUs"    || SBU    = filterSBU) &&
-        (filterFY     = ""            || FY     = filterFY)
+        (filterFY     = ""            || FY     = filterFY) &&
+        (filterOwner  = ""            || Owner  = filterOwner)
     );
 
 // Value rollups for the currently-selected use case

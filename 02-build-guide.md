@@ -6,7 +6,7 @@ How to use this document:
 2. Property values in `` `backticks` `` are Power Fx — paste them into the
    formula bar. Plain values (numbers, "strings", colors) are typed directly
    into the property panel.
-3. All colors come from the `theme` variable defined in App.OnStart
+3. All colors come from the `gblTheme` variable defined in App.OnStart
    (see `01-app-setup.md`).
 4. Naming: every control gets a meaningful name. Power Apps barks at duplicate
    names across components, not across screens — but consistent naming makes
@@ -30,7 +30,7 @@ Create a component (Tree view → Components → New component):
 Controls inside:
 
 > **Note:** Components are sandboxed — they cannot access global collections
-> like `colStatus` or variables like `theme`. Use inline `Switch` expressions
+> like `colStatus` or variables like `gblTheme`. Use inline `Switch` expressions
 > instead of `LookUp`.
 
 | Control   | Name        | Properties |
@@ -63,16 +63,16 @@ Switch(cmpStatusPill.InputStatus,
 
 ---
 
-## Screen 1 · scrHome (Landing page)
+## Screen 1 · srcHome (Landing page)
 
 Screen properties:
-- Name: `scrHome`
-- Fill: `theme.Bg`
+- Name: `srcHome`
+- Fill: `gblTheme.Bg`
 
 ### Control tree
 
 ```
-scrHome
+srcHome
 ├── conLeftRail            (Container — full-height side rail, sticky on every screen)
 │   └── ... (see "Shared left rail" below)
 ├── conHeader              (Container — maroon header bar across the top)
@@ -96,7 +96,7 @@ Container, horizontal layout, sticky to top.
   Easier alternative: don't shift the header at all; put the rail on top of
   it with a higher Z order. (The HTML mock has the header behind the rail.)
 - Y: `0`, Width: `Parent.Width - Self.X`, Height: `52`
-- Fill: `theme.Maroon`
+- Fill: `gblTheme.Maroon`
 - DropShadow: None
 
 Children:
@@ -104,7 +104,7 @@ Children:
 | Control    | Name        | Key properties |
 |------------|-------------|----------------|
 | Label      | `lblCIBC`   | X: `24`, Y: `16`, Width: `52`, Height: `20`, Text: `"CIBC"`, Color: `White`, Size: `13`, FontWeight: `Bold` |
-| Rectangle  | `recCIBCDot`| X: `lblCIBC.X + lblCIBC.Width - 14`, Y: `22`, Width: `9`, Height: `9`, Fill: `theme.CIBCRed` |
+| Rectangle  | `recCIBCDot`| X: `lblCIBC.X + lblCIBC.Width - 14`, Y: `22`, Width: `9`, Height: `9`, Fill: `gblTheme.CIBCRed` |
 | Rectangle  | `recDivider`| X: `84`, Y: `16`, Width: `1`, Height: `20`, Fill: `RGBA(255,255,255,0.25)` |
 | Label      | `lblAppName`| X: `96`, Y: `16`, Width: `200`, Height: `20`, Text: `"Enterprise AI Hub"`, Color: `RGBA(255,255,255,0.8)`, Size: `12` |
 | Label      | `lblTitle`  | X: `Parent.Width/2 - 200`, Y: `16`, Width: `400`, Height: `20`, Text: `"Business Opportunity Assessment"`, Color: `White`, Size: `14`, FontWeight: `Semibold`, Align: `Center` |
@@ -127,12 +127,12 @@ Children (each 220×72):
 
 | Button         | Name         | Text                  | Fill                | Color           | BorderColor       | OnSelect |
 |----------------|--------------|------------------------|----------------------|------------------|--------------------|----------|
-| `btnNew`       | New Intake             | `theme.Maroon`       | `White`          | `theme.Maroon`    | `Navigate(scrNew, ScreenTransition.None)` |
-| `btnList`      | View/Edit Use Cases    | `White`              | `theme.Maroon`   | `theme.BorderStrong` | `Navigate(scrList, ScreenTransition.None)` |
-| `btnTracker`   | Use Case Tracker       | `White`              | `theme.Ink2`     | `theme.BorderStrong` | `Notify("Coming soon", NotificationType.Information)` |
+| `btnNew`       | New Intake             | `gblTheme.Maroon`       | `White`          | `gblTheme.Maroon`    | `Navigate(srcNew, ScreenTransition.None)` |
+| `btnList`      | View/Edit Use Cases    | `White`              | `gblTheme.Maroon`   | `gblTheme.BorderStrong` | `Navigate(srcList, ScreenTransition.None)` |
+| `btnTracker`   | Use Case Tracker       | `White`              | `gblTheme.Ink2`     | `gblTheme.BorderStrong` | `Notify("Coming soon", NotificationType.Information)` |
 
 Each button: Size 15, FontWeight Bold, BorderThickness 1, Radius 4.
-For `btnNew` HoverFill: `theme.MaroonDeep`. For `btnList` HoverFill: `theme.MaroonLight`.
+For `btnNew` HoverFill: `gblTheme.MaroonDeep`. For `btnList` HoverFill: `gblTheme.MaroonLight`.
 
 ### Screen.OnVisible
 
@@ -151,7 +151,7 @@ global variables directly.
 - Width: `If(sideCollapsed, 64, 220)`
 - Height: `App.Height` — use `App.Height` not `Parent.Height` inside a
   component; `Parent` doesn't resolve until the component is placed on a screen.
-- Fill: `RGBA(255,255,255,1)` (components don't expose `theme` — hardcode white)
+- Fill: `RGBA(255,255,255,1)` (components don't expose `gblTheme` — hardcode white)
 
 **Fake the right border with a Rectangle inside the component** — components
 have no `BorderColor` property:
@@ -170,8 +170,8 @@ Top toggle row (Height 56, BorderBottom via a thin rect):
 
 | Control | Name | Properties |
 |---------|------|------------|
-| Icon (Menu) | `icnRailToggle` | X: `12`, Y: `10`, Width: `36`, Height: `36`, Icon: `Icon.Menu`, Color: `theme.Ink2`, OnSelect: `Set(sideCollapsed, !sideCollapsed)` |
-| Label | `lblRailTitle` | X: `58`, Y: `20`, Width: `150`, Height: `16`, Text: `"BOA MENU"`, Color: `theme.Ink2`, Size: `10`, FontWeight: `Bold`, Visible: `!sideCollapsed` |
+| Icon (Menu) | `icnRailToggle` | X: `12`, Y: `10`, Width: `36`, Height: `36`, Icon: `Icon.Menu`, Color: `gblTheme.Ink2`, OnSelect: `Set(sideCollapsed, !sideCollapsed)` |
+| Label | `lblRailTitle` | X: `58`, Y: `20`, Width: `150`, Height: `16`, Text: `"BOA MENU"`, Color: `gblTheme.Ink2`, Size: `10`, FontWeight: `Bold`, Visible: `!sideCollapsed` |
 
 Three nav items as a Gallery (vertical, no nav arrows, blank template):
 
@@ -185,7 +185,7 @@ Three nav items as a Gallery (vertical, no nav arrows, blank template):
 
 Inside the gallery template:
 
-> **Component color rule:** components cannot access `theme` or `Transparent`.
+> **Component color rule:** components cannot access `gblTheme` or `Transparent`.
 > Use hardcoded RGBA values throughout. `Transparent` → `RGBA(0,0,0,0)`.
 
 > **Default controls in the gallery template:** when you insert a vertical
@@ -208,15 +208,15 @@ Inside the gallery template:
 | Icon | `NextArrow2` | `icnRailItem` | X: `14`, Y: `(Parent.TemplateHeight - 16) / 2`, Width: `16`, Height: `16`, Icon: `Switch(ThisItem.Key, "Home", Icon.Home, "List", Icon.DetailList, "New", Icon.Add)`, Color: `RGBA(74,74,74,1)` |
 | Label | `Title2` | `lblRailItem` | X: `40`, Y: `0`, Width: `Parent.TemplateWidth - 80`, Height: `Parent.TemplateHeight`, Text: `ThisItem.Label`, Color: `RGBA(74,74,74,1)`, Size: `12`, VerticalAlign: `VerticalAlign.Middle`, Visible: `!sideCollapsed` |
 
-`recRailAccent` Fill — detects active screen without using `theme`:
+`recRailAccent` Fill — detects active screen without using `gblTheme`:
 ```powerfx
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -231,10 +231,10 @@ If(
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -247,9 +247,9 @@ If(
 Gallery OnSelect:
 ```powerfx
 Switch(ThisItem.Key,
-    "Home", Navigate(scrHome, ScreenTransition.None),
-    "List", Navigate(scrList, ScreenTransition.None),
-    "New",  Navigate(scrNew,  ScreenTransition.None)
+    "Home", Navigate(srcHome, ScreenTransition.None),
+    "List", Navigate(srcList, ScreenTransition.None),
+    "New",  Navigate(srcNew,  ScreenTransition.None)
 )
 ```
 
@@ -257,7 +257,7 @@ Put `cmpLeftRail` on every screen, anchored X=0 Y=0.
 
 ---
 
-## Screen 2 · scrList (Use Case List)
+## Screen 2 · srcList (Use Case List)
 
 > **Build this screen using `07-scrlist-guide.md`** — it's the step-by-step
 > version of this section, with numbered Insert steps, full property tables
@@ -267,7 +267,7 @@ Put `cmpLeftRail` on every screen, anchored X=0 Y=0.
 ### Control tree (right of the rail)
 
 ```
-scrList
+srcList
 ├── cmpLeftRail
 ├── conHeader                  (same as Home)
 ├── conPage                    (content container, padding 24)
@@ -276,7 +276,7 @@ scrList
 │   │   ├── lblPageCount       ("142 use cases")
 │   │   ├── lblPageSub         ("All AI and analytics use cases...")
 │   │   ├── btnExport          ("Export to Excel" — secondary)
-│   │   └── btnPageNew         ("New Use Case" — primary, Navigate scrNew)
+│   │   └── btnPageNew         ("New Use Case" — primary, Navigate srcNew)
 │   ├── conFilterCard          (white card, 6-col grid)
 │   │   ├── txtSearch
 │   │   ├── ddStatus
@@ -296,15 +296,15 @@ scrList
 Horizontal container. Width: `Parent.Width - 220 - 48` (rail offset + padding).
 
 Children sized inline:
-- `lblPageTitle`: Text `"View/Edit Use Cases"`, Size 22, FontWeight Semibold, Color `theme.Ink`.
-- `lblPageCount`: Text `Text(CountRows(colUseCases)) & " use cases"`, Size 14, Color `theme.Ink3`.
-- `lblPageSub`: Text `"All AI and analytics use cases across CIBC. Click a row to view or edit."`, Size 13, Color `theme.Ink3`.
-- `btnExport`: secondary style (Fill White, Color theme.Maroon, BorderColor theme.Maroon). OnSelect: `Notify("Export queued. You'll get a Teams ping when the file is ready.", NotificationType.Success)` (real export goes through a Power Automate flow — see deferred flow spec in `03-formulas-reference.md`).
-- `btnPageNew`: primary style. OnSelect: `Navigate(scrNew, ScreenTransition.None)`.
+- `lblPageTitle`: Text `"View/Edit Use Cases"`, Size 22, FontWeight Semibold, Color `gblTheme.Ink`.
+- `lblPageCount`: Text `Text(CountRows(colUseCases)) & " use cases"`, Size 14, Color `gblTheme.Ink3`.
+- `lblPageSub`: Text `"All AI and analytics use cases across CIBC. Click a row to view or edit."`, Size 13, Color `gblTheme.Ink3`.
+- `btnExport`: secondary style (Fill White, Color gblTheme.Maroon, BorderColor gblTheme.Maroon). OnSelect: `Notify("Export queued. You'll get a Teams ping when the file is ready.", NotificationType.Success)` (real export goes through a Power Automate flow — see deferred flow spec in `03-formulas-reference.md`).
+- `btnPageNew`: primary style. OnSelect: `Navigate(srcNew, ScreenTransition.None)`.
 
 ### conFilterCard
 
-White card, padding 14×16, BorderRadius 4, Border `theme.Border`.
+White card, padding 14×16, BorderRadius 4, Border `gblTheme.Border`.
 
 | Control | Name | Items / Default / OnChange |
 |---------|------|----------------------------|
@@ -312,14 +312,14 @@ White card, padding 14×16, BorderRadius 4, Border `theme.Border`.
 | Dropdown | `ddStatus` | Items: `["All Statuses", "Rationale", "Data Prep", "Development", "Testing", "Deployment", "Monitoring", "Decommissioning"]`, Default: `filterStatus`, OnChange: `Set(filterStatus, Self.Selected.Value)` |
 | Dropdown | `ddSBU` | Items: `Concat(["All SBUs"], colSBU)` (or just `["All SBUs"; "PBB"; "Capital Markets"; "Wealth"; "Commercial"; "Direct Banking"]`), Default: `filterSBU`, OnChange: `Set(filterSBU, Self.Selected.Value)` |
 | Dropdown | `ddFY`     | Items: `["F26", "F25", "F24"]`, Default: `filterFY`, OnChange: `Set(filterFY, Self.Selected.Value)` |
-| Dropdown | `ddOwner`  | Items: `Distinct(colUseCases, Owner)`, AllowEmptySelection: `true` |
-| Button | `btnReset` | Text: `"Reset"`, OnSelect: `Set(filterSearch,""); Reset(txtSearch); Set(filterStatus,"All Statuses"); Set(filterSBU,"All SBUs"); Set(filterFY,"F26")` |
+| Dropdown | `ddOwner`  | Items: `Distinct(colUseCases, Owner)`, Default: `filterOwner`, AllowEmptySelection: `true`, OnChange: `Set(filterOwner, If(IsBlank(Self.Selected), "", Self.Selected.Value))` |
+| Button | `btnReset` | Text: `"Reset"`, OnSelect: `Set(filterSearch,""); Reset(txtSearch); Set(filterStatus,"All Statuses"); Set(filterSBU,"All SBUs"); Set(filterFY,"F26"); Set(filterOwner,""); Reset(ddOwner)` |
 
-Label each filter with a small caption label (Size 11, Bold, Color `theme.Ink3`) above the control.
+Label each filter with a small caption label (Size 11, Bold, Color `gblTheme.Ink3`) above the control.
 
 ### conGalleryHeader
 
-A 1-row container styled like a table header. Fill `theme.Maroon`, Color White, Height 36, Font Size 12, FontWeight Semibold.
+A 1-row container styled like a table header. Fill `gblTheme.Maroon`, Color White, Height 36, Font Size 12, FontWeight Semibold.
 
 Columns (these widths must match the gallery template below):
 
@@ -357,24 +357,24 @@ OnSelect (on the gallery, not template):
 ```powerfx
 Set(selectedUC, ThisItem);
 Set(currentSection, "Info");
-Navigate(scrDetail, ScreenTransition.None)
+Navigate(srcDetail, ScreenTransition.None)
 ```
 
 Template controls (each row), positioned with X equal to running sum of widths above:
 
 | Control | Name | Properties |
 |---------|------|------------|
-| Label | `lblUCID`     | Text: `ThisItem.UCID`, Color: `theme.Ink3`, Size: 12, X: 14 |
-| Label | `lblName`     | Text: `ThisItem.Name`, FontWeight: Semibold, Color: `theme.Ink`, Size: 13 |
-| Label | `lblSBU`      | Text: `ThisItem.SBU`, Color: `theme.Ink2`, Size: 13 |
-| Label | `lblOwner`    | Text: `ThisItem.Owner`, Color: `theme.Ink2`, Size: 13 |
+| Label | `lblUCID`     | Text: `ThisItem.UCID`, Color: `gblTheme.Ink3`, Size: 12, X: 14 |
+| Label | `lblName`     | Text: `ThisItem.Name`, FontWeight: Semibold, Color: `gblTheme.Ink`, Size: 13 |
+| Label | `lblSBU`      | Text: `ThisItem.SBU`, Color: `gblTheme.Ink2`, Size: 13 |
+| Label | `lblOwner`    | Text: `ThisItem.Owner`, Color: `gblTheme.Ink2`, Size: 13 |
 | Component | `cmpStatusPill` | InputStatus: `ThisItem.Status` |
-| Label | `lblFY`       | Text: `ThisItem.FY`, Color: `theme.Ink2`, Size: 13 |
-| Label | `lblValue`    | Text: `If(ThisItem.RealizedValue = 0, "—", "$" & Text(ThisItem.RealizedValue / 1000000, "0.0") & "M")`, Color: `theme.Ink`, Size: 13 |
-| Label | `lblUpdated`  | Text: `Switch(true, DateDiff(ThisItem.LastUpdated, Today()) < 7, Text(DateDiff(ThisItem.LastUpdated, Today())) & " days ago", DateDiff(ThisItem.LastUpdated, Today()) < 30, Text(RoundDown(DateDiff(ThisItem.LastUpdated, Today())/7, 0)) & " wks ago", Text(RoundDown(DateDiff(ThisItem.LastUpdated, Today())/30, 0)) & " mo ago")`, Color: `theme.Ink2`, Size: 12 |
+| Label | `lblFY`       | Text: `ThisItem.FY`, Color: `gblTheme.Ink2`, Size: 13 |
+| Label | `lblValue`    | Text: `If(ThisItem.RealizedValue = 0, "—", "$" & Text(ThisItem.RealizedValue / 1000000, "0.0") & "M")`, Color: `gblTheme.Ink`, Size: 13 |
+| Label | `lblUpdated`  | Text: `Switch(true, DateDiff(ThisItem.LastUpdated, Today()) < 7, Text(DateDiff(ThisItem.LastUpdated, Today())) & " days ago", DateDiff(ThisItem.LastUpdated, Today()) < 30, Text(RoundDown(DateDiff(ThisItem.LastUpdated, Today())/7, 0)) & " wks ago", Text(RoundDown(DateDiff(ThisItem.LastUpdated, Today())/30, 0)) & " mo ago")`, Color: `gblTheme.Ink2`, Size: 12 |
 | Button | `btnView`    | Text: `"View"`, Style: outline maroon, OnSelect: `Select(Parent)` (so it triggers the gallery row's OnSelect) |
 
-Add a 1px bottom rect inside the template (`Fill: theme.Border`, Height: 1, Y: TemplateHeight-1) for the row separator.
+Add a 1px bottom rect inside the template (`Fill: gblTheme.Border`, Height: 1, Y: TemplateHeight-1) for the row separator.
 
 ### conGalleryFooter
 
@@ -384,7 +384,7 @@ White-grey footer matching the HTML's infinite-scroll footer. Two children, laid
   ```powerfx
   "Showing " & Text(CountRows(filteredUseCases)) & " of " & Text(CountRows(colUseCases))
   ```
-  Size 12, Color `theme.Ink3`.
+  Size 12, Color `gblTheme.Ink3`.
 
 - **Right label** (`lblScrollStatus`): scroll progress indicator.
   ```powerfx
@@ -393,20 +393,20 @@ White-grey footer matching the HTML's infinite-scroll footer. Two children, laid
      "Scroll to load more"
   )
   ```
-  Size 12, FontWeight Semibold, Color `theme.Ink2`. Prepend a small 7×7
-  maroon circle (Fill `theme.Maroon`, BorderRadius 999) to the left of this
+  Size 12, FontWeight Semibold, Color `gblTheme.Ink2`. Prepend a small 7×7
+  maroon circle (Fill `gblTheme.Maroon`, BorderRadius 999) to the left of this
   label to match the HTML's `.scroll-dot`.
 
 No page-index variable, no Next/Prev buttons. The gallery's own scroll handles everything.
 
 ---
 
-## Screen 3 · scrDetail (Detail page with side rail)
+## Screen 3 · srcDetail (Detail page with side rail)
 
 ### Control tree
 
 ```
-scrDetail
+srcDetail
 ├── cmpLeftRail
 ├── conHeader                    (maroon header)
 ├── conActionBar                 (white sticky row under header)
@@ -440,9 +440,9 @@ Fill White, Height 56, BorderBottom via rect.
 
 | Control | Name | Properties |
 |---------|------|------------|
-| Button (ghost) | `btnBack` | Text: `"← Back to List"`, Color: `theme.Ink2`, Fill: Transparent, HoverColor: `theme.Maroon`, OnSelect: `Navigate(scrList, ScreenTransition.None)` |
-| Label | `lblCrumb` | Text: `"Repository  /  " & selectedUC.UCID & " · " & selectedUC.Name`, Color: `theme.Ink3`, Size: 12 |
-| Label | `lblSaveNote` | Text: `"Draft saved ✓ " & Text(Now(), "[$-en-US]hh:mm")`, Color: `theme.Ink3`, Size: 11. (Wire to an actual save timestamp variable later — for v1 it's decorative.) |
+| Button (ghost) | `btnBack` | Text: `"← Back to List"`, Color: `gblTheme.Ink2`, Fill: Transparent, HoverColor: `gblTheme.Maroon`, OnSelect: `Navigate(srcList, ScreenTransition.None)` |
+| Label | `lblCrumb` | Text: `"Repository  /  " & selectedUC.UCID & " · " & selectedUC.Name`, Color: `gblTheme.Ink3`, Size: 12 |
+| Label | `lblSaveNote` | Text: `"Draft saved ✓ " & Text(Now(), "[$-en-US]hh:mm")`, Color: `gblTheme.Ink3`, Size: 11. (Wire to an actual save timestamp variable later — for v1 it's decorative.) |
 | Button | `btnSaveDraft` | Secondary style, Text: `"Save Draft"`, OnSelect: `Notify("Draft saved.", NotificationType.Information)` |
 | Button | `btnSubmit` | Primary style, Text: `"Submit Assessment"`, OnSelect: see Submit flow below |
 
@@ -459,8 +459,8 @@ Notify("Assessment submitted. Power Automate flow triggered.", NotificationType.
 Width 220, Fill White, BorderRight 1px.
 
 `conRailHead` shows:
-- Small label: `selectedUC.UCID & " · " & selectedUC.FY` — Color `theme.Ink3`, Size 11.
-- Big label: `selectedUC.Name` — Color `theme.Ink`, Size 15, FontWeight Semibold.
+- Small label: `selectedUC.UCID & " · " & selectedUC.FY` — Color `gblTheme.Ink3`, Size 11.
+- Big label: `selectedUC.Name` — Color `gblTheme.Ink`, Size 15, FontWeight Semibold.
 - A `cmpStatusPill` with InputStatus = `selectedUC.Status`.
 
 `galSectionNav` (vertical blank gallery):
@@ -481,21 +481,21 @@ Table(
 TemplateSize: 40. OnSelect: `Set(currentSection, ThisItem.Key)`.
 
 In the template:
-- Left accent rect (Width 3, Fill: `If(ThisItem.Key = currentSection, theme.Maroon, Transparent)`)
-- Label for `ThisItem.Label` (Color: `If(ThisItem.Key = currentSection, theme.Maroon, theme.Ink2)`, FontWeight: `If(ThisItem.Key = currentSection, Bold, Normal)`)
-- Right badge for `Num` if not blank — small pill, Fill `theme.Border` or `White` when active.
+- Left accent rect (Width 3, Fill: `If(ThisItem.Key = currentSection, gblTheme.Maroon, Transparent)`)
+- Label for `ThisItem.Label` (Color: `If(ThisItem.Key = currentSection, gblTheme.Maroon, gblTheme.Ink2)`, FontWeight: `If(ThisItem.Key = currentSection, Bold, Normal)`)
+- Right badge for `Num` if not blank — small pill, Fill `gblTheme.Border` or `White` when active.
 
 ### conSectionInfo
 
 Visible: `currentSection = "Info"`. Fill White, Padding 24×28, BorderRadius 4.
 
-**Section header**: a label `"Use Case Info"` (Color `theme.Maroon`, Size 16, Bold) with a bottom border rectangle 2px in `theme.Maroon`.
+**Section header**: a label `"Use Case Info"` (Color `gblTheme.Maroon`, Size 16, Bold) with a bottom border rectangle 2px in `gblTheme.Maroon`.
 
 **Status stepper**: container, Fill `RGBA(250,250,250,1)`, Padding 10×14.
 For each of the 6 statuses ("Rationale", "Data Prep", "Development", "Testing", "Deployment", "Monitoring"), draw:
-- A circle (Width 18, Height 18) — Fill `If(StatusIndex <= currentStatusIndex, theme.Maroon, White)`, with Border `theme.BorderStrong`.
+- A circle (Width 18, Height 18) — Fill `If(StatusIndex <= currentStatusIndex, gblTheme.Maroon, White)`, with Border `gblTheme.BorderStrong`.
 - A label with the step name — Color logic same.
-- A 1px line rectangle between steps — Fill `If(stepIndex < currentStatusIndex, theme.Maroon, theme.BorderStrong)`.
+- A 1px line rectangle between steps — Fill `If(stepIndex < currentStatusIndex, gblTheme.Maroon, gblTheme.BorderStrong)`.
 
 Use a horizontal Gallery for elegance. Items:
 ```powerfx
@@ -536,7 +536,7 @@ Set(selectedUC, LookUp(colUseCases, UCID = selectedUC.UCID));
 
 (That second line keeps `selectedUC` fresh so other sections see updates.)
 
-Field labels: Size 13, FontWeight Semibold, Color `theme.Ink2`, with a red asterisk label (`*`, Color `theme.CIBCRed`) prepended for required fields.
+Field labels: Size 13, FontWeight Semibold, Color `gblTheme.Ink2`, with a red asterisk label (`*`, Color `gblTheme.CIBCRed`) prepended for required fields.
 
 ### conSectionContacts
 
@@ -544,9 +544,9 @@ Visible: `currentSection = "Contacts"`.
 
 6 "person card" fields in a 2-column grid. Each card is a 36-tall horizontal container with:
 
-- Avatar circle 22×22 (Fill `theme.Maroon`, Color White, initials text centered)
+- Avatar circle 22×22 (Fill `gblTheme.Maroon`, Color White, initials text centered)
 - Name label
-- Subtitle label (email or role) aligned right (Color `theme.Ink3`, Size 11)
+- Subtitle label (email or role) aligned right (Color `gblTheme.Ink3`, Size 11)
 
 The "empty" state is a single 36-tall container with a dashed-border "+" placeholder and gray "Assign a developer" text. To trigger the People picker, place an `Office365Users.SearchUser({searchTerm: ...})` -driven combobox inside, hidden until clicked.
 
@@ -562,10 +562,10 @@ Visible: `currentSection = "Value"`.
 | Tile | Label | Value |
 |------|-------|-------|
 | Estimated Benefit | `"Estimated Benefit"` | `"$" & Text(selectedUC.EstimatedValue/1000000, "0.0") & "M"` |
-| Realized · F26 YTD | `"Realized · F26 YTD"` | `"$" & Text(realizedYTD/1000000, "0.0") & "M"` (Color: `theme.Maroon`) |
+| Realized · F26 YTD | `"Realized · F26 YTD"` | `"$" & Text(realizedYTD/1000000, "0.0") & "M"` (Color: `gblTheme.Maroon`) |
 | Investment Spend | `"Investment Spend"` | (hardcode `"$0.4M"` for v1 — add Investment column to UseCase later) |
 
-Each tile: BorderRadius 3, Border `theme.Border`, Fill `RGBA(250,250,250,1)`, padding 10×14, label Size 11 Bold uppercase, value Size 18 Bold.
+Each tile: BorderRadius 3, Border `gblTheme.Border`, Fill `RGBA(250,250,250,1)`, padding 10×14, label Size 11 Bold uppercase, value Size 18 Bold.
 
 **Value table** (Gallery + header row):
 
@@ -585,7 +585,7 @@ Header row container (Fill `RGBA(245,245,245,1)`, Height 32) with column labels:
     - "Not started" → grey
   - Edit button (right-aligned) — OnSelect opens a popup (see Add/Edit modal below).
 
-**Add row** at the bottom: a container with dashed top-border, button text `"+ Add value entry"` Color `theme.Maroon`. OnSelect:
+**Add row** at the bottom: a container with dashed top-border, button text `"+ Add value entry"` Color `gblTheme.Maroon`. OnSelect:
 ```powerfx
 Set(editingValueRow, Defaults(colValueEntries));
 Set(showValueModal, true);
@@ -629,15 +629,15 @@ Section head: `"Governance"` + a right-aligned progress label and a progress bar
 
 Progress bar = 2 stacked rectangles:
 - Background: Width 80, Height 6, Fill `RGBA(238,238,238,1)`, BorderRadius 3.
-- Fill: Width `80 * govProgressPct`, Height 6, Fill `theme.Maroon`.
+- Fill: Width `80 * govProgressPct`, Height 6, Fill `gblTheme.Maroon`.
 
 **Checklist gallery** `galGovernance`:
 - Items: `ucGovRows`
 - TemplateSize: 56
 - Template:
-  - Check box: a Rectangle Width/Height 18, BorderRadius 2, Fill `If(ThisItem.Done, theme.Ok, White)`, BorderColor `If(ThisItem.Done, theme.Ok, theme.BorderStrong)`. Add a label "✓" centered, Color White, Visible: `ThisItem.Done`.
+  - Check box: a Rectangle Width/Height 18, BorderRadius 2, Fill `If(ThisItem.Done, gblTheme.Ok, White)`, BorderColor `If(ThisItem.Done, gblTheme.Ok, gblTheme.BorderStrong)`. Add a label "✓" centered, Color White, Visible: `ThisItem.Done`.
   - Name label (Size 13, Bold)
-  - Meta label (Size 11, Color `theme.Ink3`)
+  - Meta label (Size 11, Color `gblTheme.Ink3`)
   - Action button right-aligned: Text `If(ThisItem.Done, "Completed", "Mark complete")`. OnSelect:
     ```powerfx
     Patch(colGovernance, ThisItem, { Done: !ThisItem.Done })
@@ -660,12 +660,12 @@ Single multi-line TextInput labeled `"Update for " & Text(Now(), "mmmm yyyy")` �
 
 Hint label below: `"This update appears in the PDF report and the monthly Teams digest."`
 
-**Toggle** (built-in Toggle control): Default ON. Label: `"Notify Executive Sponsor and AAI leadership via MS Teams when submitted"`. Color via FillSelected `theme.Maroon`.
+**Toggle** (built-in Toggle control): Default ON. Label: `"Notify Executive Sponsor and AAI leadership via MS Teams when submitted"`. Color via FillSelected `gblTheme.Maroon`.
 
 ### conSubmitZone
 
 A bottom-of-content row with:
-- Message label (Size 12, Color `theme.Ink3`): `"Save Draft keeps your changes without notifying anyone. Submit Assessment publishes the latest values and triggers Power Automate flows (Excel refresh, Power BI, Teams digest)."`
+- Message label (Size 12, Color `gblTheme.Ink3`): `"Save Draft keeps your changes without notifying anyone. Submit Assessment publishes the latest values and triggers Power Automate flows (Excel refresh, Power BI, Teams digest)."`
 - `btnSaveDraft2` (secondary)
 - `btnSubmit2` (primary) — same OnSelect as `btnSubmit` in the action bar.
 
@@ -673,18 +673,18 @@ A bottom-of-content row with:
 
 ```powerfx
 // If user lands here without selecting a use case (e.g. via deep link), bounce.
-If(IsBlank(selectedUC), Navigate(scrList, ScreenTransition.None));
+If(IsBlank(selectedUC), Navigate(srcList, ScreenTransition.None));
 Set(currentSection, "Info")
 ```
 
 ---
 
-## Screen 4 · scrNew (Create New Use Case)
+## Screen 4 · srcNew (Create New Use Case)
 
 ### Control tree
 
 ```
-scrNew
+srcNew
 ├── cmpLeftRail
 ├── conHeader
 ├── conActionBarNew              (same pattern as detail's action bar)
@@ -702,10 +702,10 @@ scrNew
 
 ### conInfoBanner
 
-Fill `theme.MaroonLight`, Border `RGBA(229,201,208,1)`, Padding 10×14, BorderRadius 3.
+Fill `gblTheme.MaroonLight`, Border `RGBA(229,201,208,1)`, Padding 10×14, BorderRadius 3.
 
 Two labels:
-- `"Step 1 of 2."` (Bold, Color `theme.Maroon`)
+- `"Step 1 of 2."` (Bold, Color `gblTheme.Maroon`)
 - `"Complete the basics below to register the use case. After saving, you'll be able to fill in Contacts, Value, Funds, Governance, and other sections from the detail page."`
 
 ### conFormGrid
@@ -765,12 +765,12 @@ Collect(colUseCases,
 Set(selectedUC, LookUp(colUseCases, UCID = nextUCID));
 Set(currentSection, "Info");
 Notify("Use case " & nextUCID & " created.", NotificationType.Success);
-Navigate(scrDetail, ScreenTransition.None)
+Navigate(srcDetail, ScreenTransition.None)
 ```
 
 ### btnCancel and btnSaveDraft
 
-- `btnCancel.OnSelect`: `Navigate(scrList, ScreenTransition.None)`
+- `btnCancel.OnSelect`: `Navigate(srcList, ScreenTransition.None)`
 - `btnSaveDraft.OnSelect`: `Notify("Draft saved (in memory).", NotificationType.Information)` — wire to actual Dataverse `Patch` once schema exists.
 
 ---
@@ -781,10 +781,10 @@ Navigate(scrDetail, ScreenTransition.None)
 - [ ] cmpLeftRail collapses/expands smoothly (will snap — that's expected in Canvas)
 - [ ] Every button has Maroon/MaroonDeep/MaroonLight Hover states applied
 - [ ] Tab order goes top-to-bottom on each section (set `TabIndex` on form inputs starting from 1)
-- [ ] `scrHome` is the topmost screen in the Tree view (prevents startup formula errors on `selectedUC` and `theme`)
+- [ ] `srcHome` is the topmost screen in the Tree view (prevents startup formula errors on `selectedUC` and `gblTheme`)
 - [ ] `selectedUC` is initialized as a typed record in `App.OnStart` (not `Blank()`) so field access resolves at startup
 - [ ] `selectedUC` is never blank on Detail at runtime (Screen.OnVisible Navigate guard handles this)
-- [ ] App.OnStart runs through to `Navigate(scrHome)` without errors (check the App checker pane)
+- [ ] App.OnStart runs through to `Navigate(srcHome)` without errors (check the App checker pane)
 
 ---
 

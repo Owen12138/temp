@@ -32,13 +32,13 @@ Steps 1–4 from `05-left-rail-inline-guide.md` are unchanged:
   `OnSelect: Set(sideCollapsed, !sideCollapsed)`.
 - `lblRailTitle` "BOA MENU" label with `Visible: !sideCollapsed`.
 
-If you already have these on `scrHome`, leave them alone. If you also added
+If you already have these on `srcHome`, leave them alone. If you also added
 the `galRailNav` gallery from step 5 of guide 05, **delete it now** — we're
 replacing it.
 
 ---
 
-## Part 1 — Build the three nav rows on `scrHome`
+## Part 1 — Build the three nav rows on `srcHome`
 
 You'll add three rows: Home, View/Edit Use Cases, New Use Case. Each row is
 a Button + an Icon overlaid on top. Build the Home row completely first, then
@@ -70,12 +70,12 @@ Inside `conLeftRail`, Insert → **Button**.
 | RadiusTopRight | `0` |
 | RadiusBottomLeft | `0` |
 | RadiusBottomRight | `0` |
-| OnSelect | `Navigate(scrHome, ScreenTransition.None)` |
+| OnSelect | `Navigate(srcHome, ScreenTransition.None)` |
 
 **Fill** — transparent when not active, light maroon tint when active:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrHome",
+    App.ActiveScreen.Name = "srcHome",
     RGBA(122, 26, 46, 0.10),
     RGBA(0, 0, 0, 0)
 )
@@ -94,7 +94,7 @@ RGBA(122, 26, 46, 0.28)
 **Color** — maroon text when active, dark gray otherwise:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrHome",
+    App.ActiveScreen.Name = "srcHome",
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -139,7 +139,7 @@ bar to `Icon.Home`.
 **Color** — same active formula as the button:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrHome",
+    App.ActiveScreen.Name = "srcHome",
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -182,7 +182,7 @@ Inside `conLeftRail`, Insert → **Rectangle**:
 **Fill**:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrHome",
+    App.ActiveScreen.Name = "srcHome",
     RGBA(122, 26, 46, 1),
     RGBA(0, 0, 0, 0)
 )
@@ -193,9 +193,9 @@ If(
 
 ---
 
-### Step 4 — Sanity check on `scrHome`
+### Step 4 — Sanity check on `srcHome`
 
-Press F5. Confirm on `scrHome`:
+Press F5. Confirm on `srcHome`:
 
 - [ ] The "Home" row's background is faintly maroon (it's the active screen).
 - [ ] Hovering "Home" darkens the maroon tint slightly.
@@ -223,13 +223,13 @@ Rename and reconfigure them:
 | Name | `btnNavList` |
 | Y | `96` |
 | Text | `If(!sideCollapsed, "View/Edit Use Cases", "")` |
-| OnSelect | `Navigate(scrList, ScreenTransition.None)` |
+| OnSelect | `Navigate(srcList, ScreenTransition.None)` |
 
-**Fill** — match against both `scrList` and `scrDetail` so the detail page
+**Fill** — match against both `srcList` and `srcDetail` so the detail page
 also lights up the list row:
 ```powerfx
 If(
-    App.ActiveScreen.Name in ["scrList", "scrDetail"],
+    App.ActiveScreen.Name in ["srcList", "srcDetail"],
     RGBA(122, 26, 46, 0.10),
     RGBA(0, 0, 0, 0)
 )
@@ -238,7 +238,7 @@ If(
 **Color**:
 ```powerfx
 If(
-    App.ActiveScreen.Name in ["scrList", "scrDetail"],
+    App.ActiveScreen.Name in ["srcList", "srcDetail"],
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -258,7 +258,7 @@ Leave `HoverFill`, `HoverColor`, `PressedFill`, `PressedColor` as they are.
 **Color** (same active formula as `btnNavList`):
 ```powerfx
 If(
-    App.ActiveScreen.Name in ["scrList", "scrDetail"],
+    App.ActiveScreen.Name in ["srcList", "srcDetail"],
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -281,12 +281,12 @@ Same drill — copy `btnNavHome` and `icnNavHome` once more, rename, retarget.
 | Name | `btnNavNew` |
 | Y | `136` |
 | Text | `If(!sideCollapsed, "New Use Case", "")` |
-| OnSelect | `Navigate(scrNew, ScreenTransition.None)` |
+| OnSelect | `Navigate(srcNew, ScreenTransition.None)` |
 
 **Fill**:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrNew",
+    App.ActiveScreen.Name = "srcNew",
     RGBA(122, 26, 46, 0.10),
     RGBA(0, 0, 0, 0)
 )
@@ -295,7 +295,7 @@ If(
 **Color**:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrNew",
+    App.ActiveScreen.Name = "srcNew",
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -313,7 +313,7 @@ If(
 **Color**:
 ```powerfx
 If(
-    App.ActiveScreen.Name = "scrNew",
+    App.ActiveScreen.Name = "srcNew",
     RGBA(122, 26, 46, 1),
     RGBA(74, 74, 74, 1)
 )
@@ -321,7 +321,7 @@ If(
 
 ---
 
-### Step 7 — Test the whole rail on `scrHome`
+### Step 7 — Test the whole rail on `srcHome`
 
 Press F5. Confirm:
 
@@ -329,11 +329,11 @@ Press F5. Confirm:
 - [ ] Each row's icon renders correctly (house, list, plus).
 - [ ] Hovering any row darkens its background and turns the cursor into a hand.
 - [ ] Clicking each row navigates to the right screen.
-- [ ] On `scrHome`, only the Home row is tinted maroon.
-- [ ] On `scrList`, only the View/Edit row is tinted maroon.
-- [ ] On `scrDetail`, the View/Edit row is also tinted (because it shares
+- [ ] On `srcHome`, only the Home row is tinted maroon.
+- [ ] On `srcList`, only the View/Edit row is tinted maroon.
+- [ ] On `srcDetail`, the View/Edit row is also tinted (because it shares
   the lookup).
-- [ ] On `scrNew`, only the New Use Case row is tinted maroon.
+- [ ] On `srcNew`, only the New Use Case row is tinted maroon.
 - [ ] Collapse the rail with the hamburger. The text disappears; the icons
   remain centered-left. Hover still works. Clicking still navigates.
 
@@ -341,11 +341,11 @@ Press F5. Confirm:
 
 ## Part 2 — Copy the rail to the other screens
 
-Once `scrHome` is clean:
+Once `srcHome` is clean:
 
-1. In the tree, click `conLeftRail` on `scrHome`.
-2. **Ctrl+C**, then click `scrList` in the tree, then **Ctrl+V**.
-3. Repeat for `scrDetail` and `scrNew`.
+1. In the tree, click `conLeftRail` on `srcHome`.
+2. **Ctrl+C**, then click `srcList` in the tree, then **Ctrl+V**.
+3. Repeat for `srcDetail` and `srcNew`.
 
 Because all formulas use `App.ActiveScreen.Name` and `sideCollapsed`, they
 work identically on every screen with no edits.
@@ -375,7 +375,7 @@ Unchanged from guide 05. Confirm on every screen:
 | Hover does nothing | Button has `HoverFill: Self.Fill` (default in some templates) | Set HoverFill to the formula in Step 1 |
 | Cursor still an arrow | You're testing in Studio edit mode, not Play | Press F5 |
 | Clicking the icon doesn't navigate | `icnNavHome.OnSelect` is empty | Set it to `Select(btnNavHome)` |
-| Row tint never applies | Screen name typo | Screens must be named exactly `scrHome`, `scrList`, `scrDetail`, `scrNew` |
+| Row tint never applies | Screen name typo | Screens must be named exactly `srcHome`, `srcList`, `srcDetail`, `srcNew` |
 | Whole rail won't collapse | `conLeftRail.Width` is a fixed number | `If(sideCollapsed, 64, 220)` |
 | Text shows when collapsed | Button `Text` is a plain string | `If(!sideCollapsed, "Home", "")` |
 | Button has a maroon border outline on focus | Default `FocusedBorderThickness` | Set `FocusedBorderThickness: 0` if you don't want the focus ring |

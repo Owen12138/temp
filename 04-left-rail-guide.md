@@ -31,13 +31,13 @@ variable or input property needed.
 
 ## Part 1 — Enable navigation from components (do this first)
 
-Components cannot reference screen objects (`scrHome`, `scrList`, etc.) by
+Components cannot reference screen objects (`srcHome`, `srcList`, etc.) by
 default. You must enable it:
 
 **File → Settings → Upcoming features → find "Allow canvas components to
 navigate" → turn ON → Save.**
 
-Without this, the gallery's `Navigate(scrHome, ...)` calls will error. This
+Without this, the gallery's `Navigate(srcHome, ...)` calls will error. This
 is the correct fix — do not try to work around it by moving navigation outside
 the component.
 
@@ -80,7 +80,7 @@ Click **Create**. This is the only custom property the component needs.
 ## Part 2 — Build controls inside the component
 
 > Rules inside a component:
-> - No `theme.X` — use hardcoded `RGBA(...)`
+> - No `gblTheme.X` — use hardcoded `RGBA(...)`
 > - No `Transparent` — use `RGBA(0,0,0,0)`
 > - `App.ActiveScreen.Name` ✓ works (built-in, not a user variable)
 > - `Set(sideCollapsed, ...)` ✓ works (writing globals from a component is allowed)
@@ -160,9 +160,9 @@ Table(
 **OnSelect:**
 ```powerfx
 Switch(ThisItem.Key,
-    "Home", Navigate(scrHome, ScreenTransition.None),
-    "List", Navigate(scrList, ScreenTransition.None),
-    "New",  Navigate(scrNew,  ScreenTransition.None)
+    "Home", Navigate(srcHome, ScreenTransition.None),
+    "List", Navigate(srcList, ScreenTransition.None),
+    "New",  Navigate(srcNew,  ScreenTransition.None)
 )
 ```
 
@@ -190,10 +190,10 @@ Fill — uses `App.ActiveScreen.Name` to detect the active screen:
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -235,10 +235,10 @@ Color:
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -269,10 +269,10 @@ Color (same formula as icon):
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -302,7 +302,7 @@ If(cmpLeftRail.MenuExpanded, 220, 64)
 
 ## Part 3 — Place the component on each screen
 
-Repeat for scrHome, scrList, scrDetail, scrNew.
+Repeat for srcHome, srcList, srcDetail, srcNew.
 
 ### Step 11 — Insert and configure the instance
 
@@ -351,9 +351,9 @@ Parent.Width - If(sideCollapsed, 64, 220)
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `theme.X` error | Component can't read the `theme` record variable | Use hardcoded `RGBA(...)` |
+| `gblTheme.X` error | Component can't read the `gblTheme` record variable | Use hardcoded `RGBA(...)` |
 | `Transparent` error | Not a valid keyword inside a component | Use `RGBA(0,0,0,0)` |
-| Active item never highlights | `App.ActiveScreen.Name` not matching screen name | Check your screen is named exactly `scrHome`, `scrList`, `scrDetail`, `scrNew` |
+| Active item never highlights | `App.ActiveScreen.Name` not matching screen name | Check your screen is named exactly `srcHome`, `srcList`, `srcDetail`, `srcNew` |
 | Width not collapsing | Instance Width is a fixed number | Set to `If(sideCollapsed, 64, 220)` |
 | Toggle does nothing | `icnToggle.OnSelect` wrong | Must be `Set(sideCollapsed, !sideCollapsed)` |
 | Label still shows when collapsed | `lblRailItem.Visible` wrong | Must be `cmpLeftRail.MenuExpanded` |

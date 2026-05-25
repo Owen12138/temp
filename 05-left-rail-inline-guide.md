@@ -35,14 +35,14 @@ Do not add it again if it's already there.
 
 ## Part 1 — Build the rail on one screen first
 
-Do everything in this section on **scrHome**. Once it works there, you'll copy
+Do everything in this section on **srcHome**. Once it works there, you'll copy
 the whole container to the other screens in Part 2.
 
 ---
 
 ### Step 1 — Add a Container for the rail
 
-Go to **scrHome**. Insert → **Container** (not a Horizontal/Vertical layout
+Go to **srcHome**. Insert → **Container** (not a Horizontal/Vertical layout
 container — just a blank Container).
 
 Set these properties:
@@ -143,13 +143,13 @@ Table(
 **OnSelect:**
 ```powerfx
 Switch(ThisItem.Key,
-    "Home", Navigate(scrHome, ScreenTransition.None),
-    "List", Navigate(scrList, ScreenTransition.None),
-    "New",  Navigate(scrNew,  ScreenTransition.None)
+    "Home", Navigate(srcHome, ScreenTransition.None),
+    "List", Navigate(srcList, ScreenTransition.None),
+    "New",  Navigate(srcNew,  ScreenTransition.None)
 )
 ```
 
-> Because you're on a screen (not inside a component), `Navigate(scrHome, ...)`
+> Because you're on a screen (not inside a component), `Navigate(srcHome, ...)`
 > works immediately — no settings toggle required.
 
 ---
@@ -179,10 +179,10 @@ Fill — highlights the row whose screen is currently active:
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -224,10 +224,10 @@ Color:
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -258,10 +258,10 @@ Color (same active-state formula as the icon):
 If(
     ThisItem.Key = LookUp(
         Table(
-            {K:"scrHome",   V:"Home"},
-            {K:"scrList",   V:"List"},
-            {K:"scrDetail", V:"List"},
-            {K:"scrNew",    V:"New"}
+            {K:"srcHome",   V:"Home"},
+            {K:"srcList",   V:"List"},
+            {K:"srcDetail", V:"List"},
+            {K:"srcNew",    V:"New"}
         ),
         K = App.ActiveScreen.Name,
         V
@@ -273,7 +273,7 @@ If(
 
 ---
 
-### Step 7 — Test on scrHome before copying
+### Step 7 — Test on srcHome before copying
 
 Press **F5** (or the Play button). Confirm:
 
@@ -289,13 +289,13 @@ Fix any issues before copying to other screens.
 
 ## Part 2 — Copy the rail to the other screens
 
-Once scrHome is working, this is the fastest path:
+Once srcHome is working, this is the fastest path:
 
-1. In the tree view, click `conLeftRail` on scrHome to select it.
+1. In the tree view, click `conLeftRail` on srcHome to select it.
 2. **Ctrl+C** to copy.
-3. Click on **scrList** in the tree to make it the active screen.
+3. Click on **srcList** in the tree to make it the active screen.
 4. **Ctrl+V** to paste. The container lands at the same X/Y/Width/Height.
-5. Repeat for **scrDetail** and **scrNew**.
+5. Repeat for **srcDetail** and **srcNew**.
 
 > The paste lands at the same position, so no repositioning should be needed.
 > All formulas — including `If(sideCollapsed, 64, 220)` and
@@ -333,7 +333,7 @@ rail so they don't overlap. These properties should already reference
 | Rail doesn't collapse | `conLeftRail.Width` is a fixed number | Set Width to `If(sideCollapsed, 64, 220)` |
 | Toggle does nothing | `icnRailToggle.OnSelect` wrong | Must be `Set(sideCollapsed, !sideCollapsed)` |
 | Labels still show when collapsed | `lblRailItem.Visible` wrong | Set to `!sideCollapsed` |
-| Active row never highlights | Screen name typo | Check your screens are named exactly `scrHome`, `scrList`, `scrDetail`, `scrNew` |
+| Active row never highlights | Screen name typo | Check your screens are named exactly `srcHome`, `srcList`, `srcDetail`, `srcNew` |
 | Content overlaps rail | Header/conPage X not updated | Set X and Width to use `If(sideCollapsed, 64, 220)` |
 | Navigate errors on paste | Screen reference missing | Make sure all four screens exist before pasting |
 | Rail appears behind content | Z-order issue | In tree view, drag `conLeftRail` to be above other containers |

@@ -39,8 +39,8 @@ In Power Apps Studio, create a new blank Tablet-landscape Canvas app, then:
    a control tree, every control's key properties, and per-control formulas.
    Work top-to-bottom; don't skip ahead. For the left rail section, follow
    `04-left-rail-guide.md` instead. For the Use Case List screen
-   (`scrList`), follow the step-by-step **`07-scrlist-guide.md`** — it
-   replaces section "Screen 2 · scrList" with numbered Insert steps,
+   (`srcList`), follow the step-by-step **`07-scrlist-guide.md`** — it
+   replaces section "Screen 2 · srcList" with numbered Insert steps,
    full property tables, and a sanity check after each part.
    *Estimated time: 4–6 hrs total (~1 hr per screen, Detail page is heaviest).*
 

@@ -79,10 +79,10 @@ For inline pills outside the component (e.g. Value table signoff):
 ```powerfx
 // Color
 Switch(ThisItem.Signoff,
-    "Signed off", theme.Ok,
-    "Pending",    theme.Warn,
-    "Not started", theme.Ink4,
-    theme.Ink4
+    "Signed off", gblTheme.Ok,
+    "Pending",    gblTheme.Warn,
+    "Not started", gblTheme.Ink4,
+    gblTheme.Ink4
 )
 
 // Label
@@ -153,21 +153,21 @@ Within the stepper gallery template:
 
 ```powerfx
 // Circle fill — done OR current
-If(ThisItem.Idx <= lblCurrentIdx.Text, theme.Maroon, White)
+If(ThisItem.Idx <= lblCurrentIdx.Text, gblTheme.Maroon, White)
 
 // Circle border
-If(ThisItem.Idx <= lblCurrentIdx.Text, theme.Maroon, theme.BorderStrong)
+If(ThisItem.Idx <= lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
 
 // Number/text color
-If(ThisItem.Idx <= lblCurrentIdx.Text, White, theme.Ink3)
+If(ThisItem.Idx <= lblCurrentIdx.Text, White, gblTheme.Ink3)
 
 // Label color
-If(ThisItem.Idx <  lblCurrentIdx.Text, theme.Ink2,
-   ThisItem.Idx = lblCurrentIdx.Text, theme.Maroon,
-   theme.Ink3)
+If(ThisItem.Idx <  lblCurrentIdx.Text, gblTheme.Ink2,
+   ThisItem.Idx = lblCurrentIdx.Text, gblTheme.Maroon,
+   gblTheme.Ink3)
 
 // Connector line fill (between steps)
-If(ThisItem.Idx < lblCurrentIdx.Text, theme.Maroon, theme.BorderStrong)
+If(ThisItem.Idx < lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
 ```
 
 ---
@@ -193,10 +193,10 @@ Set(currentSection, ThisItem.Key)
 currentSection = "Info"   // etc.
 
 // Active row accent
-If(ThisItem.Key = currentSection, theme.Maroon, RGBA(0,0,0,0))
+If(ThisItem.Key = currentSection, gblTheme.Maroon, RGBA(0,0,0,0))
 
 // Active row text color
-If(ThisItem.Key = currentSection, theme.Maroon, theme.Ink2)
+If(ThisItem.Key = currentSection, gblTheme.Maroon, gblTheme.Ink2)
 
 // Active row weight
 If(ThisItem.Key = currentSection, FontWeight.Bold, FontWeight.Normal)
@@ -241,10 +241,10 @@ Patch(colGovernance, ThisItem, { Done: !ThisItem.Done })
 If(ThisItem.Done, "Completed", "Mark complete")
 
 // Checkbox fill
-If(ThisItem.Done, theme.Ok, White)
+If(ThisItem.Done, gblTheme.Ok, White)
 
 // Checkbox border
-If(ThisItem.Done, theme.Ok, theme.BorderStrong)
+If(ThisItem.Done, gblTheme.Ok, gblTheme.BorderStrong)
 
 // "✓" label visibility
 ThisItem.Done
@@ -338,7 +338,7 @@ Collect(colUseCases,
 Set(selectedUC, LookUp(colUseCases, UCID = nextUCID));
 Set(currentSection, "Info");
 Notify("Use case " & nextUCID & " created.", NotificationType.Success);
-Navigate(scrDetail, ScreenTransition.None)
+Navigate(srcDetail, ScreenTransition.None)
 ```
 
 Validation gate before allowing Create (set `btnCreate.DisplayMode`):
@@ -435,7 +435,7 @@ Avatar circle inside the person card:
 selectedUC.OwnerInitials
 
 // Fill (could also use the user's profile image via Office365Users.UserPhotoV2)
-theme.Maroon
+gblTheme.Maroon
 ```
 
 ---
@@ -446,29 +446,29 @@ Use these for every control you create:
 
 | Control type   | Property         | Default value                            |
 |----------------|------------------|------------------------------------------|
-| Button (primary)   | Fill             | `theme.Maroon`                           |
-|                | HoverFill        | `theme.MaroonDeep`                       |
+| Button (primary)   | Fill             | `gblTheme.Maroon`                           |
+|                | HoverFill        | `gblTheme.MaroonDeep`                       |
 |                | Color            | `White`                                  |
-|                | BorderColor      | `theme.Maroon`                           |
+|                | BorderColor      | `gblTheme.Maroon`                           |
 | Button (secondary) | Fill             | `White`                                  |
-|                | HoverFill        | `theme.MaroonLight`                      |
-|                | Color            | `theme.Maroon`                           |
-|                | BorderColor      | `theme.Maroon`                           |
-| TextInput      | BorderColor      | `theme.BorderStrong`                     |
-|                | FocusedBorderColor | `theme.Maroon`                         |
-|                | Color            | `theme.Ink`                              |
+|                | HoverFill        | `gblTheme.MaroonLight`                      |
+|                | Color            | `gblTheme.Maroon`                           |
+|                | BorderColor      | `gblTheme.Maroon`                           |
+| TextInput      | BorderColor      | `gblTheme.BorderStrong`                     |
+|                | FocusedBorderColor | `gblTheme.Maroon`                         |
+|                | Color            | `gblTheme.Ink`                              |
 |                | Fill             | `White`                                  |
-| Dropdown       | BorderColor      | `theme.BorderStrong`                     |
-|                | Color            | `theme.Ink`                              |
+| Dropdown       | BorderColor      | `gblTheme.BorderStrong`                     |
+|                | Color            | `gblTheme.Ink`                              |
 |                | Fill             | `White`                                  |
-|                | SelectionColor   | `theme.Maroon`                           |
-| Label (field)  | Color            | `theme.Ink2`                             |
+|                | SelectionColor   | `gblTheme.Maroon`                           |
+| Label (field)  | Color            | `gblTheme.Ink2`                             |
 |                | Size             | `13`                                     |
 |                | Weight           | Semibold                                 |
-| Label (hint)   | Color            | `theme.Ink3`                             |
+| Label (hint)   | Color            | `gblTheme.Ink3`                             |
 |                | Size             | `11`                                     |
 | Container (card) | Fill           | `White`                                  |
-|                | BorderColor      | `theme.Border`                           |
+|                | BorderColor      | `gblTheme.Border`                           |
 |                | BorderThickness  | `1`                                      |
 |                | RadiusTopLeft etc.| `4`                                     |
 
