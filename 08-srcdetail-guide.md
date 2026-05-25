@@ -46,7 +46,13 @@ srcDetail (1366×768)
 └── conDetailLayout           (Y = 108, fills remaining height)
     ├── conSectionRail        (X = 0, W = 220, fills height) — internal nav
     │   ├── conRailHead       (UCID + FY, name, status pill)
-    │   └── galSectionNav     (vertical gallery of 7 section links)
+    │   ├── btnSecInfo + recSecAccentInfo
+    │   ├── btnSecContacts + recSecAccentContacts
+    │   ├── btnSecValue + recSecAccentValue + lblSecBadgeValue
+    │   ├── btnSecFunds + recSecAccentFunds
+    │   ├── btnSecGov + recSecAccentGov + lblSecBadgeGov
+    │   ├── btnSecTech + recSecAccentTech
+    │   └── btnSecUpdates + recSecAccentUpdates
     ├── conContent            (X = 220, fills remaining width)
     │   ├── conSectionInfo        Visible: currentSection = "Info"
     │   ├── conSectionContacts    Visible: currentSection = "Contacts"
@@ -59,9 +65,14 @@ srcDetail (1366×768)
 ```
 
 Only **one** `conSection*` is visible at a time. Switching is just a
-variable: clicking a row in `galSectionNav` sets `currentSection`, and
-each section's `Visible` formula compares against it. No tab control,
-no animation, no DOM manipulation — Power Apps native.
+variable: clicking a nav button sets `currentSection`, and each
+section's `Visible` formula compares against it. No tab control, no
+animation, no DOM manipulation — Power Apps native.
+
+The nav rows are individual Buttons, not a gallery — same buttons-only
+pattern as `06-left-rail-buttons-guide.md`. Galleries don't expose
+per-row HoverFill, don't reliably show the hand cursor, and store-
+then-read of style properties via `ThisItem.…` is flaky.
 
 A note on widths: with the rail collapsed (`sideCollapsed = true`,
 default), the page area is `1366 - 64 = 1302`. With it expanded:
@@ -500,129 +511,245 @@ Preview from `srcList` → click any row:
 
 ---
 
-## Part 5 — Section nav gallery
+## Part 5 — Section nav (buttons, no gallery)
 
-A vertical gallery of 7 section links. The active one tints maroon
-with a left accent stripe.
+Seven nav rows for switching sections. We build them as individual
+Buttons instead of a gallery — same reasoning as
+`06-left-rail-buttons-guide.md` for the main left rail. Galleries
+don't expose per-row `HoverFill`, don't reliably show the hand cursor
+on click, and store-then-read of style properties via `ThisItem.…` is
+flaky. Seven buttons is small enough to maintain by hand.
 
-### Step 22 — Insert the gallery
+For each row you'll add **two controls** as siblings of `conRailHead`
+(direct children of `conSectionRail`):
 
-Inside `conSectionRail`, Insert → **Gallery** → **Blank vertical**.
+1. A `Button` — the click target. Native `HoverFill`, hand cursor,
+   active-state Fill/Color formulas keyed off `currentSection`.
+2. A 3-px `Rectangle` — the left accent stripe, maroon when active.
+
+Two of the rows (Value and Governance) get a third sibling: a small
+count `Label` overlaid on the right.
+
+> All controls below go inside **`conSectionRail`** (siblings of
+> `conRailHead`). Do not put them inside `conRailHead`.
+
+The rows stack starting at `Y = conRailHead.Y + conRailHead.Height`
+(= 100) with `Height = 40`. So row N sits at
+`Y = 100 + (N - 1) * 40`.
+
+| Row | Section key | Label | Y | Badge formula |
+|-----|-------------|-------|---|---------------|
+| 1 | `"Info"` | "Use Case Info" | `100` | none |
+| 2 | `"Contacts"` | "Contacts" | `140` | none |
+| 3 | `"Value"` | "Value" | `180` | `Text(CountRows(ucValueRows))` |
+| 4 | `"Funds"` | "Funds" | `220` | none |
+| 5 | `"Gov"` | "Governance" | `260` | `Text(govDoneCount)` |
+| 6 | `"Tech"` | "Technical Review" | `300` | none |
+| 7 | `"Updates"` | "Monthly Update" | `340` | none |
+
+### Step 22 — Build the first row (Info) completely
+
+You'll build the Info row in full, get it working, then copy/paste
+six times and tweak the per-row fields (Y, Text, Key, OnSelect).
+
+**Button.** Inside `conSectionRail`, Insert → **Button**.
 
 | Property | Value |
 |----------|-------|
-| Name | `galSectionNav` |
+| Name | `btnSecInfo` |
 | X | `0` |
-| Y | `conRailHead.Y + conRailHead.Height` |
-| Width | `Parent.Width` |
-| Height | `Parent.Height - Self.Y` |
-| TemplateSize | `40` |
-| TemplatePadding | `0` |
-| ShowScrollbar | `false` |
+| Y | `100` |
+| Width | `Parent.Width - 1` |
+| Height | `40` |
+| Text | `"Use Case Info"` |
+| Align | `Align.Left` |
+| PaddingLeft | `20` |
+| Size | `13` |
 | BorderThickness | `0` |
-| Items | (see formula below) |
-| OnSelect | `Set(currentSection, ThisItem.Key)` |
+| FocusedBorderThickness | `0` |
+| RadiusTopLeft / TopRight / BottomLeft / BottomRight | `0` |
+| OnSelect | `Set(currentSection, "Info")` |
+
+Width subtracts 1 so it doesn't sit on top of the rail's right
+border (`recSectionRailBorder` from Step 13).
+
+**Fill** — transparent normally, light maroon tint when active:
 
 ```powerfx
-Table(
-    {Key: "Info",     Label: "Use Case Info",    Num: Blank()},
-    {Key: "Contacts", Label: "Contacts",         Num: Blank()},
-    {Key: "Value",    Label: "Value",            Num: CountRows(ucValueRows)},
-    {Key: "Funds",    Label: "Funds",            Num: Blank()},
-    {Key: "Gov",      Label: "Governance",       Num: govDoneCount},
-    {Key: "Tech",     Label: "Technical Review", Num: Blank()},
-    {Key: "Updates",  Label: "Monthly Update",   Num: Blank()}
+If(
+    currentSection = "Info",
+    RGBA(122, 26, 46, 0.10),
+    RGBA(0, 0, 0, 0)
 )
 ```
 
-> **A note on `Num`:** the spec shows `Num` as the count of rows for
-> the Value and Gov sections so each link can display a badge (e.g.
-> "Value · 3"). We surface only `Num` (an integer) in the gallery,
-> and the badge is hidden when `Num` is blank. If you want the
-> "X/Y" form for Governance, change to
-> `Num: Text(govDoneCount) & "/" & Text(govTotalCount)` and update
-> the badge label type in Step 26.
+**HoverFill** — slightly darker on hover, regardless of active state:
 
-### Step 23 — Row template structure
+```powerfx
+RGBA(122, 26, 46, 0.18)
+```
 
-Click the small chevron next to `galSectionNav` to enter the template
-(dashed border). The template hosts three children:
+**PressedFill** — darker still on click:
 
-1. `recNavAccent` — 3 px left stripe, maroon when active.
-2. `lblNavLabel` — section name.
-3. `lblNavBadge` — small count badge on the right (hidden when blank).
+```powerfx
+RGBA(122, 26, 46, 0.28)
+```
 
-Inside the template, Insert → **Rectangle**:
+**Color** — maroon when active, ink2 otherwise:
+
+```powerfx
+If(
+    currentSection = "Info",
+    gblTheme.Maroon,
+    gblTheme.Ink2
+)
+```
+
+**HoverColor / PressedColor** — maroon (so hovered rows feel live):
+
+```powerfx
+gblTheme.Maroon
+```
+
+**FontWeight** — bold when active:
+
+```powerfx
+If(
+    currentSection = "Info",
+    FontWeight.Bold,
+    FontWeight.Semibold
+)
+```
+
+**Accent stripe.** Inside `conSectionRail` (not inside the button —
+sibling), Insert → **Rectangle**:
 
 | Property | Value |
 |----------|-------|
-| Name | `recNavAccent` |
+| Name | `recSecAccentInfo` |
 | X | `0` |
-| Y | `0` |
+| Y | `btnSecInfo.Y` |
 | Width | `3` |
-| Height | `Parent.TemplateHeight` |
-| Fill | `If(ThisItem.Key = currentSection, gblTheme.Maroon, RGBA(0,0,0,0))` |
+| Height | `btnSecInfo.Height` |
 | BorderThickness | `0` |
+| DisplayMode | `DisplayMode.Disabled` |
+| Fill | `If(currentSection = "Info", gblTheme.Maroon, RGBA(0,0,0,0))` |
 
-### Step 24 — Row label
+`DisplayMode.Disabled` stops the rectangle from intercepting clicks on
+the leftmost 3 px of the button.
 
-Still inside the template, Insert → **Label**:
+### Step 23 — Sanity check the Info row
+
+Click a row in `srcList` to land here. Confirm:
+
+- [ ] "Use Case Info" row visible at Y=100, full rail width.
+- [ ] Because `currentSection` defaults to `"Info"` (set in OnVisible
+      Step 3), the row is tinted faintly maroon and the 3-px left
+      stripe is maroon. Text is bold maroon.
+- [ ] Hover the row — the tint darkens; cursor turns to a hand.
+- [ ] Click the row — `currentSection` doesn't change (still `"Info"`)
+      so visually nothing happens, but the press tint flashes.
+
+Don't move on until this works. The next 6 rows are copies.
+
+### Step 24 — Copy the Info row 6 times
+
+Select **both** `btnSecInfo` and `recSecAccentInfo` in the tree
+(Ctrl+click). Copy (Ctrl+C). Paste (Ctrl+V) inside `conSectionRail`.
+Studio names the duplicates `btnSecInfo_1` and `recSecAccentInfo_1`.
+Paste five more times — you'll end up with `_1` through `_6`.
+
+For each pair, rename and reconfigure per the table below. Every
+field references `currentSection = "<Key>"` — replace `"Info"` with
+the row's key in **all four** formulas (Fill, Color, FontWeight,
+accent Fill).
+
+> **Tip:** to bulk-edit a formula, double-click the property in the
+> right panel, swap the literal string, press Enter. Saves time on 6
+> identical rows.
+
+| Pair | Button name | Accent name | Y | Text | OnSelect | Active-key string |
+|------|-------------|-------------|---|------|----------|-------------------|
+| 2 | `btnSecContacts` | `recSecAccentContacts` | `140` | `"Contacts"` | `Set(currentSection, "Contacts")` | `"Contacts"` |
+| 3 | `btnSecValue` | `recSecAccentValue` | `180` | `"Value"` | `Set(currentSection, "Value")` | `"Value"` |
+| 4 | `btnSecFunds` | `recSecAccentFunds` | `220` | `"Funds"` | `Set(currentSection, "Funds")` | `"Funds"` |
+| 5 | `btnSecGov` | `recSecAccentGov` | `260` | `"Governance"` | `Set(currentSection, "Gov")` | `"Gov"` |
+| 6 | `btnSecTech` | `recSecAccentTech` | `300` | `"Technical Review"` | `Set(currentSection, "Tech")` | `"Tech"` |
+| 7 | `btnSecUpdates` | `recSecAccentUpdates` | `340` | `"Monthly Update"` | `Set(currentSection, "Updates")` | `"Updates"` |
+
+For each button, update:
+- `Fill` — swap `"Info"` for the row's active-key string.
+- `Color` — same.
+- `FontWeight` — same.
+- The accent rectangle's `Fill` — same.
+
+Notice the Gov row's section key is `"Gov"`, not `"Governance"` — the
+key has to match the `Visible` formula on `conSectionGov` (Step 51).
+
+### Step 25 — Add badges to Value and Gov rows
+
+The Value row should show how many value entries exist
+(`CountRows(ucValueRows)`) and Gov should show the done count
+(`govDoneCount`). Add a small count label on top of each button.
+
+For the **Value** badge, inside `conSectionRail`, Insert → **Label**:
 
 | Property | Value |
 |----------|-------|
-| Name | `lblNavLabel` |
-| Text | `ThisItem.Label` |
-| X | `16` |
-| Y | `0` |
-| Width | `Parent.TemplateWidth - 60` |
-| Height | `Parent.TemplateHeight` |
-| Size | `13` |
-| Font | `gblTheme.FontFamily` |
-| Color | `If(ThisItem.Key = currentSection, gblTheme.Maroon, gblTheme.Ink2)` |
-| FontWeight | `If(ThisItem.Key = currentSection, FontWeight.Bold, FontWeight.Normal)` |
-| VerticalAlign | `VerticalAlign.Middle` |
-| PaddingLeft | `0` |
-
-### Step 25 — Row badge (count chip)
-
-Still inside the template, Insert → **Label**:
-
-| Property | Value |
-|----------|-------|
-| Name | `lblNavBadge` |
-| Text | `If(IsBlank(ThisItem.Num), "", Text(ThisItem.Num))` |
-| Visible | `!IsBlank(ThisItem.Num)` |
-| X | `Parent.TemplateWidth - 40` |
-| Y | `(Parent.TemplateHeight - Self.Height) / 2` |
+| Name | `lblSecBadgeValue` |
+| Text | `Text(CountRows(ucValueRows))` |
+| Visible | `CountRows(ucValueRows) > 0` |
+| X | `btnSecValue.X + btnSecValue.Width - 38` |
+| Y | `btnSecValue.Y + (btnSecValue.Height - Self.Height) / 2` |
 | Width | `28` |
 | Height | `20` |
 | Size | `10` |
 | FontWeight | `FontWeight.Semibold` |
-| Color | `If(ThisItem.Key = currentSection, White, gblTheme.Ink3)` |
-| Fill | `If(ThisItem.Key = currentSection, gblTheme.Maroon, gblTheme.Border)` |
 | Align | `Align.Center` |
 | VerticalAlign | `VerticalAlign.Middle` |
-| RadiusTopLeft / TopRight / BottomLeft / BottomRight | `10` |
 | PaddingLeft | `0` |
 | PaddingRight | `0` |
+| BorderThickness | `0` |
+| DisplayMode | `DisplayMode.Disabled` |
+| RadiusTopLeft / TopRight / BottomLeft / BottomRight | `10` |
+| Color | `If(currentSection = "Value", White, gblTheme.Ink3)` |
+| Fill | `If(currentSection = "Value", gblTheme.Maroon, gblTheme.Border)` |
 
-### Step 26 — Sanity check
+`DisplayMode.Disabled` keeps the badge from blocking clicks on the
+button underneath.
 
-Click outside the template to exit edit mode. Preview from `srcList`
-→ click any row:
+For the **Gov** badge, repeat: name `lblSecBadgeGov`,
+Text=`Text(govDoneCount)`, Visible=`govTotalCount > 0`, X/Y anchored
+to `btnSecGov`, active-key `"Gov"` in the Color and Fill formulas.
 
-- [ ] Seven section links visible in the internal rail: Use Case
-      Info, Contacts, Value, Funds, Governance, Technical Review,
-      Monthly Update.
-- [ ] "Use Case Info" is highlighted: 3px maroon accent on the left,
-      label is bold maroon.
-- [ ] Value and Governance show small count badges on the right
-      (e.g. "3" and "3" for UC-0142).
-- [ ] Click "Governance" — the accent and label move to that row;
-      Info loses its accent.
-- [ ] Click back to "Use Case Info" — accent returns. The content
-      area on the right is still empty at this stage; you'll add
-      panels in Parts 6–10.
+> Prefer "3/5" over plain "3" for Gov? Change Text to
+> `Text(govDoneCount) & "/" & Text(govTotalCount)` and widen the
+> label to `36` so two-digit pairs fit. Same idea for any other row
+> if you add more sections later.
+
+### Step 26 — Sanity check the whole nav
+
+Press F5 → click any row in `srcList` to land on Detail. Confirm:
+
+- [ ] Seven nav rows visible in the internal rail: Use Case Info,
+      Contacts, Value, Funds, Governance, Technical Review, Monthly
+      Update.
+- [ ] "Use Case Info" is tinted maroon with a 3-px maroon left
+      stripe and bold maroon text (because `currentSection = "Info"`
+      from OnVisible).
+- [ ] Hover any row — background darkens; cursor turns into a hand.
+- [ ] Click "Governance" — its row tints + accent + bold text
+      activates; Info's tint and accent clear.
+- [ ] Click back to "Use Case Info" — Info activates again.
+- [ ] Value row shows a small `3` badge on the right
+      (`CountRows(ucValueRows) = 3` for UC-0142). Gov row shows `3`
+      too (`govDoneCount = 3` for UC-0142).
+- [ ] Clicking the badge area still navigates because the badge has
+      `DisplayMode.Disabled` and forwards clicks to the button.
+- [ ] The content area on the right is still empty at this stage;
+      you'll add the section panels in Parts 6–10. For now, the
+      cards visibility toggles invisibly — selection state is
+      visible only in the nav.
 
 ---
 
@@ -1676,7 +1803,11 @@ If all 13 boxes pass, `srcDetail` is done. Move on to `srcNew`
 | Stepper circles never highlight | `selectedUC.Status` doesn't match a code in `lblCurrentStatusIdx`'s LookUp table | Status codes must be exactly: `Rationale`, `DataPrep`, `Development`, `Testing`, `Deployment`, `Monitoring`. Check `colUseCases` data. |
 | Status dropdown changes don't update the stepper | Dropdown OnChange writes the Label back to `Status` instead of the Code | Use `LookUp(colStatus, Label = Self.Selected.Value, Code)` — see Step 34 row 2. |
 | Sections all visible at once | A section's `Visible` formula is missing or evaluates to true unconditionally | Each `conSection*.Visible` must be `currentSection = "<key>"`. Check Step 27, 36, 40, 50, 51, 52, 53. |
-| Clicking section nav does nothing | Gallery `OnSelect` is on a template control instead of the gallery itself | Click `galSectionNav` (not a child of it), set its `OnSelect` to `Set(currentSection, ThisItem.Key)`. |
+| Clicking section nav does nothing | Button's `OnSelect` is empty (e.g. when you copied `btnSecInfo` you forgot to retarget OnSelect) | Each button's OnSelect must be `Set(currentSection, "<Key>")` with the row's key — see Step 24 table. |
+| All seven nav rows look "active" (or none do) | The Fill/Color/FontWeight formulas on a copied button still compare against `"Info"` | Update all four formulas on each copy (button Fill, Color, FontWeight, and the accent rectangle's Fill) to compare against the row's own key. |
+| Badge label blocks clicks on the Value or Gov row | `lblSecBadgeValue.DisplayMode` isn't `DisplayMode.Disabled` | Set it; the badge will let clicks pass through to the button underneath. |
+| Cursor stays an arrow over a nav row | You're testing in Studio edit mode | Press F5; hand cursor only appears in preview. |
+| Hovering a nav row does nothing | Button's `HoverFill` is `Self.Fill` (Studio default in some templates) | Set it to the formula in Step 22 (`RGBA(122, 26, 46, 0.18)`). |
 | Section rail head doesn't update when navigating between use cases | `lblRailName`, etc. reference a hardcoded value | Their `Text` must reference `selectedUC.<Field>`, not a literal. |
 | Custom component (`cmpStatusPill`) won't insert into `conRowSignoff` | Power Apps blocks components inside containers nested in gallery templates | Use the inline Circle + Label (Step 45). The component still works in `conRailHead` (Step 20) because that's not under a gallery. |
 | Modal doesn't cover the whole screen | `conValueModalScrim` was created inside `conSectionValue` instead of at the screen root | Cut it, paste at the `srcDetail` root level. |
