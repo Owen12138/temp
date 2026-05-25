@@ -8,9 +8,12 @@ opens to the detail screen.
 This guide assumes you have already completed:
 
 - `01-app-setup.md` — `App.OnStart` has set `gblTheme`, `colUseCases`,
-  `filterSearch`, `filterStatus`, `filterSBU`, `filterFY`, and the
-  `cmpStatusPill` component exists. `App.Formulas` has the
-  `filteredUseCases` named formula.
+  `filterSearch`, `filterStatus`, `filterSBU`, `filterFY`,
+  `filterOwner`. `App.Formulas` has the `filteredUseCases` named
+  formula (including the Owner clause). The `cmpStatusPill` component
+  is _not_ required by this screen — Step 28 inlines the pill as a
+  Circle + Label because Power Apps blocks custom components inside
+  containers nested in a gallery template.
 - `06-left-rail-buttons-guide.md` — `conLeftRail` exists on `srcHome`
   (built as Buttons + Icons, not as a gallery).
 - The existing `02-build-guide.md` for `srcHome`'s `conHeader`
@@ -666,26 +669,77 @@ With({d: DateDiff(ThisItem.LastUpdated, Today())},
 )
 ```
 
-### Step 28 — Status pill (inside `conStatusCol`)
+### Step 28 — Status pill (inlined inside `conStatusCol`)
 
-Click `conStatusCol` in the tree, then Insert → **Custom** → pick
-`cmpStatusPill` (built in `01-app-setup.md` section 4).
+> **Why not the `cmpStatusPill` component?** Power Apps explicitly
+> blocks custom components from being placed as children of a
+> Container that itself lives inside a gallery template. You'll see an
+> error like *"does not support component as a child of container
+> under gallery"* if you try. So for this screen we inline the pill
+> as two primitives — a Circle for the colored dot and a Label for
+> the status text. The `cmpStatusPill` component is still useful
+> elsewhere (e.g. on the detail screen side rail, where it isn't
+> inside a gallery).
+
+Inside `conStatusCol`, insert two controls.
+
+**Circle (the colored dot)** — Insert → **Icons** → **Circle**:
 
 | Property | Value |
 |----------|-------|
-| Name | `cmpStatusPill_1` |
+| Name | `circStatusDot` |
 | X | `0` |
 | Y | `(Parent.Height - Self.Height) / 2` |
-| Width | `Parent.Width * 0.8` |
-| Height | `24` |
-| InputStatus | `ThisItem.Status` |
+| Width | `8` |
+| Height | `8` |
+| BorderThickness | `0` |
+| Fill | (see formula below) |
 
-`Parent` here is `conStatusCol`. The `* 0.8` leaves ~20% of the
-column as right-side breathing room, matching the original
-120-in-150 ratio.
+`circStatusDot.Fill`:
 
-If `cmpStatusPill` doesn't appear under Custom, you skipped building
-it — return to `01-app-setup.md` section 4 first.
+```powerfx
+Switch(ThisItem.Status,
+    "Rationale",       RGBA(110,110,110,1),
+    "DataPrep",        RGBA(110,110,110,1),
+    "Development",     RGBA(31,111,178,1),
+    "Testing",         RGBA(197,139,26,1),
+    "Deployment",      RGBA(45,125,63,1),
+    "Monitoring",      RGBA(74,124,140,1),
+    "Decommissioning", RGBA(176,176,176,1),
+    RGBA(110,110,110,1)
+)
+```
+
+(Same color map as the `cmpStatusPill` component, just inlined.)
+
+**Label (the status text)** — Insert → **Label**:
+
+| Property | Value |
+|----------|-------|
+| Name | `lblStatusText` |
+| X | `circStatusDot.X + circStatusDot.Width + 6` |
+| Y | `0` |
+| Width | `Parent.Width - Self.X` |
+| Height | `Parent.Height` |
+| Text | (see formula below) |
+| Color | `gblTheme.Ink2` |
+| Size | `12` |
+| FontWeight | `FontWeight.Normal` |
+| Font | `gblTheme.FontFamily` |
+| VerticalAlign | `VerticalAlign.Middle` |
+| PaddingLeft | `0` |
+
+`lblStatusText.Text`:
+
+```powerfx
+Switch(ThisItem.Status,
+    "DataPrep", "Data Prep",
+    ThisItem.Status
+)
+```
+
+(Only `DataPrep` needs the space inserted; every other status code
+is human-readable as-is.)
 
 ### Step 29 — View button (inside `conActionCol`)
 
@@ -878,10 +932,12 @@ in `02-build-guide.md`).
 | Columns don't reflow when rail toggles | A child of `conGalleryHeader` or `conRow` has an explicit `Width` (or `X`) instead of `FillPortions` | Open the control and clear `Width` (it should be auto, with `FillPortions` driving sizing). Same for `X` — Horizontal Container children shouldn't have X set. |
 | Header columns don't line up with row columns | A row column's `FillPortions` doesn't match its header column | Compare Step 23 and Step 27 — column N's FillPortions must be the same integer in both tables (e.g. SBU is `120` in both). |
 | Row columns appear in the wrong order | Tree order inside `conRow` doesn't match column 1→9 | In the tree, drag children of `conRow` so they appear top-to-bottom in the desired left-to-right order. Same for `conGalleryHeader`. |
-| Status pill fills the whole Status column | Pill was inserted directly inside `conRow` instead of inside `conStatusCol` | Cut the pill from `conRow`, paste it inside `conStatusCol`. Same fix for View button → `conActionCol`. |
+| Status text overflows the Status column | `lblStatusText.Width` is fixed instead of `Parent.Width - Self.X` | Width should reference Parent so it scales with `conStatusCol` when the rail toggles. |
+| View button stretches the whole Action column | Button was inserted directly inside `conRow` instead of inside `conActionCol` | Cut the button from `conRow`, paste it inside `conActionCol`. |
 | View column overflows past the gallery card | `btnView.Width = Parent.Width` (the wrapper container) | Change to `Parent.Width * 0.8` (Step 29). Same `* 0.8` pattern for the pill in Step 28. |
-| Status pill missing | `cmpStatusPill` not in tree | Build it per `01-app-setup.md` section 4 first. |
-| Status pill shows the wrong color | `InputStatus` typed wrong, or doesn't match Code in `colStatus` | Status values must be one of: Rationale, DataPrep, Development, Testing, Deployment, Monitoring, Decommissioning. |
+| Custom component (`cmpStatusPill`) won't insert into `conStatusCol` — Studio errors with "does not support component as a child of container under gallery" | Power Apps blocks custom components inside containers nested in gallery templates | Use the inline Circle + Label pattern in Step 28 instead of the component. The component is still fine elsewhere (e.g. the detail screen rail). |
+| Status dot is the wrong color (or always gray) | `ThisItem.Status` doesn't match any branch in the `circStatusDot.Fill` Switch | Status values must be one of: Rationale, DataPrep, Development, Testing, Deployment, Monitoring, Decommissioning. Anything else falls through to the gray default. |
+| Status label shows "DataPrep" instead of "Data Prep" | The Switch in `lblStatusText.Text` is missing | Add `"DataPrep", "Data Prep",` as the first Switch branch (Step 28 formula). |
 | Row click does nothing | OnSelect is on a template control instead of the gallery itself | Click `galUseCases` in the tree (not a child of it), put the formula from Step 25 in its `OnSelect`. |
 | View button doesn't navigate | `btnView.OnSelect` is `Select(Parent)` (left over from the old non-container layout) | Update to `Select(Parent.Parent.Parent)` — button → `conActionCol` → `conRow` → `galUseCases` (Step 29). |
 | Reset doesn't clear search text | `Reset(txtSearch)` missing | Add `Reset(txtSearch);` to `btnReset.OnSelect` alongside `Set(filterSearch, "");`. |
