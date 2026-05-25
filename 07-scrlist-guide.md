@@ -449,74 +449,89 @@ Inside `conPage`, Insert → **Container**.
 
 ### Step 22 — Header strip
 
-Inside `conGallery`, Insert → **Rectangle**.
+Inside `conGallery`, Insert → **Layout** → **Horizontal container**.
 
 | Property | Value |
 |----------|-------|
-| Name | `recGalleryHeader` |
+| Name | `conGalleryHeader` |
 | X | `0` |
 | Y | `0` |
 | Width | `Parent.Width` |
 | Height | `36` |
 | Fill | `theme.Maroon` |
 | BorderThickness | `0` |
+| LayoutDirection | `LayoutDirection.Horizontal` |
+| LayoutGap | `0` |
+| LayoutAlignItems | `LayoutAlignItems.Center` |
+| LayoutJustifyContent | `LayoutJustifyContent.Start` |
+| PaddingLeft | `14` |
+| PaddingRight | `0` |
+| PaddingTop | `0` |
+| PaddingBottom | `0` |
 
-### Step 23 — Column labels (responsive)
+The container hosts the 9 column labels in Step 23. `LayoutGap: 0`
+means no automatic spacing between columns — each label's allocated
+width comes purely from its `FillPortions`. `PaddingLeft: 14`
+reproduces the 14-px leading gutter without needing a spacer.
 
-All nine header labels live inside `recGalleryHeader`. To make the
-gallery reflow when the rail toggles, each Width scales with the
-current card width, and each X chains off the previous column.
+### Step 23 — Column labels (FillPortions)
 
-**The scale ratio** (used by every Width below):
+All nine header labels live **inside** `conGalleryHeader`. Because the
+parent is a Horizontal Container, you don't set X, Y, Width, or
+Height on the labels — the container distributes them left-to-right
+and centers them vertically. The only layout property you set is
+`FillPortions`: the column's share of the row width.
 
-```powerfx
-Parent.Width / 1244
-```
+Power Apps divides the available container width proportionally
+across all FillPortions values, so toggling the rail rescales every
+column with no extra math. The integer is the column's pixel budget
+at the design size (rail collapsed) — use the same numbers we did
+before.
 
-1244 is the design width with the rail collapsed (the running sum of
-14 + 100 + 320 + 120 + 160 + 150 + 60 + 130 + 110 + 80). At runtime
-`Parent.Width` is whatever `recGalleryHeader.Width` resolves to (which
-equals `conGallery.Width`), so all nine columns shrink proportionally
-when the rail expands and grow back when it collapses.
+**Insert the labels in order 1 → 9.** Tree order = left-to-right
+rendering. If you insert them in the wrong order, drag in the tree
+to reorder.
 
-Insert the labels in order (1 → 9), because each X references the
-previous one.
-
-| # | Name | Text | X | Width |
-|---|------|------|---|-------|
-| 1 | `lblColUCID` | `"UCID"` | `14 * Parent.Width / 1244` | `100 * Parent.Width / 1244` |
-| 2 | `lblColName` | `"Use Case Name"` | `lblColUCID.X + lblColUCID.Width` | `320 * Parent.Width / 1244` |
-| 3 | `lblColSBU` | `"SBU"` | `lblColName.X + lblColName.Width` | `120 * Parent.Width / 1244` |
-| 4 | `lblColOwner` | `"AI Solution Owner"` | `lblColSBU.X + lblColSBU.Width` | `160 * Parent.Width / 1244` |
-| 5 | `lblColStatus` | `"Status"` | `lblColOwner.X + lblColOwner.Width` | `150 * Parent.Width / 1244` |
-| 6 | `lblColFY` | `"FY"` | `lblColStatus.X + lblColStatus.Width` | `60 * Parent.Width / 1244` |
-| 7 | `lblColValue` | `"Realized Value"` | `lblColFY.X + lblColFY.Width` | `130 * Parent.Width / 1244` |
-| 8 | `lblColUpdated` | `"Last Updated"` | `lblColValue.X + lblColValue.Width` | `110 * Parent.Width / 1244` |
-| 9 | `lblColAction` | `""` | `lblColUpdated.X + lblColUpdated.Width` | `80 * Parent.Width / 1244` |
+| # | Name | Text | FillPortions |
+|---|------|------|--------------|
+| 1 | `lblColUCID` | `"UCID"` | `100` |
+| 2 | `lblColName` | `"Use Case Name"` | `320` |
+| 3 | `lblColSBU` | `"SBU"` | `120` |
+| 4 | `lblColOwner` | `"AI Solution Owner"` | `160` |
+| 5 | `lblColStatus` | `"Status"` | `150` |
+| 6 | `lblColFY` | `"FY"` | `60` |
+| 7 | `lblColValue` | `"Realized Value"` | `130` |
+| 8 | `lblColUpdated` | `"Last Updated"` | `110` |
+| 9 | `lblColAction` | `""` | `80` |
 
 All nine share these properties:
 
 | Property | Value |
 |----------|-------|
-| Y | `10` |
-| Height | `16` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
 | Color | `White` |
 | Font | `theme.FontFamily` |
+| PaddingLeft | `0` |
 
-> **Why this works:** the nine bases (14, 100, 320, …, 80) sum to
-> exactly 1244 px. Multiplying every X and Width by
-> `Parent.Width / 1244` makes them sum to exactly `Parent.Width`, so
-> the row always fills the card with no clipping in either rail state.
+> **Adding or removing a column later:** just insert a new label
+> inside `conGalleryHeader` (or delete an existing one) and set its
+> `FillPortions`. The other columns automatically rebalance — no
+> formula elsewhere to update. The matching insert/delete must be
+> done in the row template (Step 27) so the rows still line up under
+> the headers.
 
 ### Step 24 — Sanity check
 
 Preview:
 
-- [ ] White gallery card below the filter card, with a maroon top strip.
-- [ ] Column header labels visible in white, left-aligned within their
-      column widths.
+- [ ] White gallery card below the filter card, with a maroon top
+      strip.
+- [ ] Column header labels visible in white, left-aligned within
+      their column widths.
+- [ ] **Toggle the rail (hamburger).** Header columns should reflow
+      — every column narrows proportionally when the rail expands,
+      widens back when it collapses. No clipping on the right.
 
 ---
 
@@ -548,46 +563,85 @@ Navigate(scrDetail, ScreenTransition.None)
 ```
 
 The 40 reserved at the bottom of Height is for `conGalleryFooter` in
-Part 6.
+Part 6. The row template (built in Steps 26–29) will host its own
+Horizontal Container that mirrors `conGalleryHeader`.
 
-### Step 26 — Row divider
+### Step 26 — Row template structure
 
-You need a 1px line at the bottom of each row.
+In the tree, click the small chevron next to `galUseCases` to enter
+the template (the template highlights with a dashed border). Inside
+the template, you'll add two siblings:
 
-In the tree, click the small chevron next to `galUseCases` to enter the
-template (the template highlights with a dashed border). Insert →
-**Rectangle**.
+1. **`conRow`** — Horizontal Container holding the 9 row columns
+   (mirrors `conGalleryHeader`).
+2. **`recRowDivider`** — 1px rectangle at the bottom of the row.
+
+Insert → **Layout** → **Horizontal container**:
+
+| Property | Value |
+|----------|-------|
+| Name | `conRow` |
+| X | `0` |
+| Y | `0` |
+| Width | `Parent.TemplateWidth` |
+| Height | `Parent.TemplateHeight - 1` |
+| Fill | `RGBA(0,0,0,0)` |
+| BorderThickness | `0` |
+| LayoutDirection | `LayoutDirection.Horizontal` |
+| LayoutGap | `0` |
+| LayoutAlignItems | `LayoutAlignItems.Center` |
+| LayoutJustifyContent | `LayoutJustifyContent.Start` |
+| PaddingLeft | `14` |
+| PaddingRight | `0` |
+| PaddingTop | `0` |
+| PaddingBottom | `0` |
+
+The `- 1` on Height leaves room for the divider below. `Parent` here
+is the gallery (`galUseCases`); `TemplateWidth` and `TemplateHeight`
+are the gallery's row-size properties.
+
+Then, still inside the template (NOT inside `conRow`), Insert →
+**Rectangle** for the divider:
 
 | Property | Value |
 |----------|-------|
 | Name | `recRowDivider` |
 | X | `0` |
-| Y | `galUseCases.TemplateHeight - 1` |
-| Width | `Parent.Width` |
+| Y | `Parent.TemplateHeight - 1` |
+| Width | `Parent.TemplateWidth` |
 | Height | `1` |
 | Fill | `theme.Border` |
 | BorderThickness | `0` |
 
-### Step 27 — Row labels
+### Step 27 — Row columns
 
-Still inside the template, insert these seven labels. Every label uses
-Y=`(galUseCases.TemplateHeight - Self.Height) / 2` and Font=
-`theme.FontFamily`. Height is 16 except where noted.
+All 9 row controls live **inside `conRow`**. Like the header, you set
+only `FillPortions` to control column width — no X, Y, Width, or
+Height. **The FillPortions value for each column must match the
+header in Step 23** so headers and rows line up.
 
-**X and Width reference the header column directly.** This guarantees
-every row column lines up under its header — when the rail toggles
-and the header columns reflow, the rows reflow with them. No
-duplicated math.
+Insert in order 1 → 9. Items 5 and 9 are plain Containers (not
+labels) — they're empty wrappers that get filled in Steps 28 and 29.
 
-| # | Control | Name | Text | X | Width | Size | Color | FontWeight |
-|---|---------|------|------|---|-------|------|-------|-----------|
-| 1 | Label | `lblUCID` | `ThisItem.UCID` | `lblColUCID.X` | `lblColUCID.Width` | 12 | `theme.Ink3` | `FontWeight.Normal` |
-| 2 | Label | `lblName` | `ThisItem.Name` | `lblColName.X` | `lblColName.Width` | 13 | `theme.Ink` | `FontWeight.Semibold` |
-| 3 | Label | `lblSBU` | `ThisItem.SBU` | `lblColSBU.X` | `lblColSBU.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 4 | Label | `lblOwner` | `ThisItem.Owner` | `lblColOwner.X` | `lblColOwner.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 5 | Label | `lblFY` | `ThisItem.FY` | `lblColFY.X` | `lblColFY.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 6 | Label | `lblValue` | (see below) | `lblColValue.X` | `lblColValue.Width` | 13 | `theme.Ink` | `FontWeight.Normal` |
-| 7 | Label | `lblUpdated` | (see below) | `lblColUpdated.X` | `lblColUpdated.Width` | 12 | `theme.Ink2` | `FontWeight.Normal` |
+| # | Control type | Name | Text | FillPortions | Size | Color | FontWeight |
+|---|--------------|------|------|--------------|------|-------|-----------|
+| 1 | Label | `lblUCID` | `ThisItem.UCID` | `100` | 12 | `theme.Ink3` | `FontWeight.Normal` |
+| 2 | Label | `lblName` | `ThisItem.Name` | `320` | 13 | `theme.Ink` | `FontWeight.Semibold` |
+| 3 | Label | `lblSBU` | `ThisItem.SBU` | `120` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 4 | Label | `lblOwner` | `ThisItem.Owner` | `160` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 5 | Container (classic) | `conStatusCol` | — | `150` | — | — | — |
+| 6 | Label | `lblFY` | `ThisItem.FY` | `60` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 7 | Label | `lblValue` | (see below) | `130` | 13 | `theme.Ink` | `FontWeight.Normal` |
+| 8 | Label | `lblUpdated` | (see below) | `110` | 12 | `theme.Ink2` | `FontWeight.Normal` |
+| 9 | Container (classic) | `conActionCol` | — | `80` | — | — | — |
+
+All 7 labels share Font=`theme.FontFamily` and PaddingLeft=`0`.
+
+The two wrapper Containers (`conStatusCol` and `conActionCol`) need
+just two properties: `FillPortions` (from the table) and
+`Fill: RGBA(0,0,0,0)`. They exist so the pill and View button can
+sit within a column slot without stretching to its full width — see
+Steps 28 and 29.
 
 `lblValue.Text`:
 
@@ -611,38 +665,38 @@ With({d: DateDiff(ThisItem.LastUpdated, Today())},
 )
 ```
 
-### Step 28 — Status pill (column 5)
+### Step 28 — Status pill (inside `conStatusCol`)
 
-Still inside the template, Insert → **Custom** → pick `cmpStatusPill`
-(built in `01-app-setup.md` section 4).
+Click `conStatusCol` in the tree, then Insert → **Custom** → pick
+`cmpStatusPill` (built in `01-app-setup.md` section 4).
 
 | Property | Value |
 |----------|-------|
 | Name | `cmpStatusPill_1` |
-| X | `lblColStatus.X` |
-| Y | `(galUseCases.TemplateHeight - Self.Height) / 2` |
-| Width | `lblColStatus.Width * 0.8` |
+| X | `0` |
+| Y | `(Parent.Height - Self.Height) / 2` |
+| Width | `Parent.Width * 0.8` |
 | Height | `24` |
 | InputStatus | `ThisItem.Status` |
 
-(The `* 0.8` leaves ~20% of the column as right-side breathing room,
-matching the 120-in-150 ratio from the original spec. The pill still
-sits at the left edge of the Status column.)
+`Parent` here is `conStatusCol`. The `* 0.8` leaves ~20% of the
+column as right-side breathing room, matching the original
+120-in-150 ratio.
 
-If `cmpStatusPill` doesn't appear under Custom, you skipped building it
-— return to `01-app-setup.md` section 4 and create it first.
+If `cmpStatusPill` doesn't appear under Custom, you skipped building
+it — return to `01-app-setup.md` section 4 first.
 
-### Step 29 — View button (column 9)
+### Step 29 — View button (inside `conActionCol`)
 
-Still inside the template, Insert → **Button**.
+Click `conActionCol` in the tree, then Insert → **Button**.
 
 | Property | Value |
 |----------|-------|
 | Name | `btnView` |
 | Text | `"View"` |
-| X | `lblColAction.X` |
-| Y | `(galUseCases.TemplateHeight - Self.Height) / 2` |
-| Width | `lblColAction.Width * 0.8` |
+| X | `0` |
+| Y | `(Parent.Height - Self.Height) / 2` |
+| Width | `Parent.Width * 0.8` |
 | Height | `28` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
@@ -652,11 +706,12 @@ Still inside the template, Insert → **Button**.
 | BorderColor | `theme.Maroon` |
 | BorderThickness | `1` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| OnSelect | `Select(Parent)` |
+| OnSelect | `Select(Parent.Parent.Parent)` |
 
-`Select(Parent)` programmatically fires the gallery row's OnSelect
-(the `Navigate` from Step 25), so clicking View has the same effect as
-clicking anywhere else on the row.
+`Parent.Parent.Parent` walks: button → `conActionCol` → `conRow` →
+`galUseCases`. Calling `Select()` on the gallery fires the row's
+OnSelect (the `Navigate` from Step 25), so clicking View has the
+same effect as clicking anywhere else on the row.
 
 ### Step 30 — Sanity check
 
@@ -664,31 +719,34 @@ Click anywhere outside the template to exit template-editing mode.
 Preview:
 
 - [ ] 10 rows visible (matching `colUseCases`).
-- [ ] Each row shows UCID, name in bold, SBU, owner, a colored Status
-      pill, FY, `$X.XM` value (or `"—"`), `"N days ago"`, and a View
-      button.
-- [ ] Clicking a row opens `scrDetail` with `selectedUC` populated
-      (the detail screen may still be empty — that's OK).
+- [ ] Each row shows UCID, name in bold, SBU, owner, a colored
+      Status pill, FY, `$X.XM` value (or `"—"`), `"N days ago"`, and
+      a View button.
+- [ ] Clicking a row (anywhere — label, pill, or button) opens
+      `scrDetail` with `selectedUC` populated.
 - [ ] Typing `"Mortgage"` in Search filters to 1 row.
 - [ ] Setting Status to `"Development"` filters to 2 rows.
 - [ ] Reset → all 10 rows return.
 - [ ] **Toggle the rail (hamburger).** Every column should reflow —
-      narrower when the rail expands, wider when it collapses. The
-      View button must never clip past the right edge of the gallery
-      card. Row cells must stay aligned under their header labels in
-      both states.
+      narrower when the rail expands, wider when it collapses. Row
+      cells stay aligned under their header labels in both states.
 
-If a column drifts a few pixels left or right, the row label is
-probably pointing at the wrong header column — cross-check Step 27
-(`lblXXX.X` should equal `lblColXXX.X` for the same column number).
+If a row column drifts away from its header, the FillPortions value
+on a row control doesn't match the corresponding header value.
+Compare Step 23 and Step 27 — column N's FillPortions must be the
+same integer in both tables.
 
-> **If you already built Parts 4/5 with the old fixed X/Width values
-> (14, 114, 434, …, Width 100/320/120/…):** select each affected
-> control in the tree and update only its X and Width to the formulas
-> above. All other properties stay the same. The order to update is:
-> Step 23 first (all 9 header labels), then Step 27 (7 row labels),
-> then Step 28 (pill) and Step 29 (View button). Update the header
-> first because the row controls reference it.
+> **Adding a new column later:** insert a label in `conGalleryHeader`
+> (Step 23 table), then insert a matching control in `conRow` (Step
+> 27 table) with the same FillPortions. The other 9 columns rebalance
+> automatically.
+>
+> **If you already built Parts 4/5 with the previous chained-formula
+> approach (X = `lblColUCID.X + …`, Width = `… * Parent.Width / 1244`):**
+> this is a larger migration than usual. The cleanest path is to
+> delete `recGalleryHeader` and the gallery template contents, then
+> rebuild from Step 22 with the Horizontal Container approach. Plan
+> for ~15 minutes.
 
 ---
 
@@ -816,12 +874,15 @@ in `02-build-guide.md`).
 |---------|-------|-----|
 | Gallery shows no rows | `filteredUseCases` is empty, or filters too restrictive | Click `App` in the tree, check `Formulas` contains the `filteredUseCases =` block from `01-app-setup.md` section 3. Reset filters. |
 | Gallery shows red squiggle on Items | `filteredUseCases` isn't defined as a named formula | Same as above — paste the block into `App.Formulas` (not `App.OnStart`). |
-| Last column clips off the right when rail expands | Header / row controls were built with hard-coded X/Width instead of the `* Parent.Width / 1244` formulas | Apply the migration note at the bottom of Step 30 — update the 9 header labels (Step 23), then the 7 row labels (Step 27), then the pill (Step 28) and View button (Step 29). |
-| Columns drift from the header labels | A row label points at the wrong header column | In Step 27, `lblXXX.X` must equal `lblColXXX.X` for the same column number (e.g. `lblSBU.X = lblColSBU.X`, not `lblColOwner.X`). |
-| Header columns reflow but rows don't (or vice versa) | One side uses formulas, the other uses fixed values | Both Step 23 and Step 27 must use the formula approach. Mixing fixed and formula causes the rows to drift away from the header on rail toggle. |
+| Columns don't reflow when rail toggles | A child of `conGalleryHeader` or `conRow` has an explicit `Width` (or `X`) instead of `FillPortions` | Open the control and clear `Width` (it should be auto, with `FillPortions` driving sizing). Same for `X` — Horizontal Container children shouldn't have X set. |
+| Header columns don't line up with row columns | A row column's `FillPortions` doesn't match its header column | Compare Step 23 and Step 27 — column N's FillPortions must be the same integer in both tables (e.g. SBU is `120` in both). |
+| Row columns appear in the wrong order | Tree order inside `conRow` doesn't match column 1→9 | In the tree, drag children of `conRow` so they appear top-to-bottom in the desired left-to-right order. Same for `conGalleryHeader`. |
+| Status pill fills the whole Status column | Pill was inserted directly inside `conRow` instead of inside `conStatusCol` | Cut the pill from `conRow`, paste it inside `conStatusCol`. Same fix for View button → `conActionCol`. |
+| View column overflows past the gallery card | `btnView.Width = Parent.Width` (the wrapper container) | Change to `Parent.Width * 0.8` (Step 29). Same `* 0.8` pattern for the pill in Step 28. |
 | Status pill missing | `cmpStatusPill` not in tree | Build it per `01-app-setup.md` section 4 first. |
 | Status pill shows the wrong color | `InputStatus` typed wrong, or doesn't match Code in `colStatus` | Status values must be one of: Rationale, DataPrep, Development, Testing, Deployment, Monitoring, Decommissioning. |
-| Row click does nothing | OnSelect is on the template instead of the gallery | Click the gallery itself (not a child), put the formula from Step 25 there. |
+| Row click does nothing | OnSelect is on a template control instead of the gallery itself | Click `galUseCases` in the tree (not a child of it), put the formula from Step 25 in its `OnSelect`. |
+| View button doesn't navigate | `btnView.OnSelect` is `Select(Parent)` (left over from the old non-container layout) | Update to `Select(Parent.Parent.Parent)` — button → `conActionCol` → `conRow` → `galUseCases` (Step 29). |
 | Reset doesn't clear search text | `Reset(txtSearch)` missing | Add `Reset(txtSearch);` to `btnReset.OnSelect` alongside `Set(filterSearch, "");`. |
 | `Navigate(scrNew, ...)` errors | `scrNew` screen doesn't exist yet | Create a blank screen named exactly `scrNew`. You'll build it out in `02-build-guide.md` section 4. |
 | `Navigate(scrDetail, ...)` errors | Same as above for `scrDetail` | Create a blank screen named exactly `scrDetail`. |
