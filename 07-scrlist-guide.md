@@ -226,22 +226,41 @@ Inside `conPage`, Insert → **Container**.
 | BorderColor | `theme.Border` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
 
-### Step 13 — Column X reference
+### Step 13 — Column layout (responsive)
 
-You'll reuse these six X values. Each column is 200 wide with a 14-wide
-gutter on either side.
+We need the filter row to reflow when the rail toggles, because
+`conFilterCard.Width` changes from ~1254 (rail collapsed) to ~1098
+(rail expanded). Hard-coding X values would push the last column off
+the right edge in the expanded state.
 
-| Column | Contents | X |
-|--------|----------|----|
+The pattern: every input gets the **same** Width formula, and every
+input after the first sets its X by referencing the previous control.
+Caption labels mirror their input below.
+
+**Column width formula** (used by every input and every caption):
+
+```powerfx
+(Parent.Width - 14 * 7) / 6
+```
+
+That's 6 columns sharing the card width, minus 7 gutters of 14 px (one
+on each edge + five between columns).
+
+**Column X chain:**
+
+| Column | Contents | X formula |
+|--------|----------|-----------|
 | 1 | Search | `14` |
-| 2 | Status | `228` |
-| 3 | SBU | `442` |
-| 4 | FY | `656` |
-| 5 | Owner | `870` |
-| 6 | Reset | `1084` |
+| 2 | Status | `txtSearch.X + txtSearch.Width + 14` |
+| 3 | SBU    | `ddStatus.X + ddStatus.Width + 14` |
+| 4 | FY     | `ddSBU.X + ddSBU.Width + 14` |
+| 5 | Owner  | `ddFY.X + ddFY.Width + 14` |
+| 6 | Reset  | `ddOwner.X + ddOwner.Width + 14` |
 
-(All caption labels: Y=10, Height=14, Width=200. All inputs: Y=30,
-Height=40, Width=200.)
+All caption labels: Y=`10`, Height=`14`. All inputs and the Reset
+button: Y=`30`, Height=`40`. Build the controls in the order below
+(Step 14 → 19) so each X reference resolves to a control that already
+exists.
 
 ### Step 14 — Search input + caption
 
@@ -253,7 +272,7 @@ Inside `conFilterCard`, Insert → **Label** (caption first):
 | Text | `"Search"` |
 | X | `14` |
 | Y | `10` |
-| Width | `200` |
+| Width | `(Parent.Width - 14 * 7) / 6` |
 | Height | `14` |
 | Size | `11` |
 | FontWeight | `FontWeight.Semibold` |
@@ -267,7 +286,7 @@ Then Insert → **Text input**:
 | HintText | `"UCID, name, owner…"` |
 | X | `14` |
 | Y | `30` |
-| Width | `200` |
+| Width | `(Parent.Width - 14 * 7) / 6` |
 | Height | `40` |
 | Size | `13` |
 | BorderColor | `theme.Border` |
@@ -277,17 +296,18 @@ Then Insert → **Text input**:
 
 ### Step 15 — Status dropdown + caption
 
-Caption `lblCapStatus`: same style as `lblCapSearch`, X=`228`, Y=`10`,
-Text=`"Status"`.
+Caption `lblCapStatus`: same style as `lblCapSearch`, but
+X=`txtSearch.X + txtSearch.Width + 14`, Y=`10`,
+Width=`txtSearch.Width`, Text=`"Status"`.
 
 Dropdown:
 
 | Property | Value |
 |----------|-------|
 | Name | `ddStatus` |
-| X | `228` |
+| X | `txtSearch.X + txtSearch.Width + 14` |
 | Y | `30` |
-| Width | `200` |
+| Width | `txtSearch.Width` |
 | Height | `40` |
 | Items | `["All Statuses","Rationale","Data Prep","Development","Testing","Deployment","Monitoring","Decommissioning"]` |
 | Default | `filterStatus` |
@@ -298,16 +318,17 @@ Dropdown:
 
 ### Step 16 — SBU dropdown + caption
 
-Caption `lblCapSBU`: X=`442`, Y=`10`, Text=`"SBU"`.
+Caption `lblCapSBU`: X=`ddStatus.X`, Y=`10`, Width=`txtSearch.Width`,
+Text=`"SBU"`.
 
 Dropdown:
 
 | Property | Value |
 |----------|-------|
 | Name | `ddSBU` |
-| X | `442` |
+| X | `ddStatus.X + ddStatus.Width + 14` |
 | Y | `30` |
-| Width | `200` |
+| Width | `txtSearch.Width` |
 | Height | `40` |
 | Items | `["All SBUs","PBB","Capital Markets","Wealth","Commercial","Direct Banking"]` |
 | Default | `filterSBU` |
@@ -317,16 +338,17 @@ Dropdown:
 
 ### Step 17 — FY dropdown + caption
 
-Caption `lblCapFY`: X=`656`, Y=`10`, Text=`"Fiscal year"`.
+Caption `lblCapFY`: X=`ddSBU.X`, Y=`10`, Width=`txtSearch.Width`,
+Text=`"Fiscal year"`.
 
 Dropdown:
 
 | Property | Value |
 |----------|-------|
 | Name | `ddFY` |
-| X | `656` |
+| X | `ddSBU.X + ddSBU.Width + 14` |
 | Y | `30` |
-| Width | `200` |
+| Width | `txtSearch.Width` |
 | Height | `40` |
 | Items | `["F26","F25","F24"]` |
 | Default | `filterFY` |
@@ -336,16 +358,17 @@ Dropdown:
 
 ### Step 18 — Owner dropdown + caption
 
-Caption `lblCapOwner`: X=`870`, Y=`10`, Text=`"Owner"`.
+Caption `lblCapOwner`: X=`ddFY.X`, Y=`10`, Width=`txtSearch.Width`,
+Text=`"Owner"`.
 
 Dropdown:
 
 | Property | Value |
 |----------|-------|
 | Name | `ddOwner` |
-| X | `870` |
+| X | `ddFY.X + ddFY.Width + 14` |
 | Y | `30` |
-| Width | `200` |
+| Width | `txtSearch.Width` |
 | Height | `40` |
 | Items | `Distinct(colUseCases, Owner)` |
 | AllowEmptySelection | `true` |
@@ -367,9 +390,9 @@ Inside `conFilterCard`, Insert → **Button**.
 |----------|-------|
 | Name | `btnReset` |
 | Text | `"Reset"` |
-| X | `1084` |
+| X | `ddOwner.X + ddOwner.Width + 14` |
 | Y | `30` |
-| Width | `120` |
+| Width | `txtSearch.Width` |
 | Height | `40` |
 | Size | `13` |
 | FontWeight | `FontWeight.Semibold` |
@@ -388,9 +411,18 @@ Preview:
 
 - [ ] Six columns visible: search box, four dropdowns, Reset button.
 - [ ] Caption labels sit above each, small and gray.
+- [ ] **Toggle the rail (hamburger).** Columns should reflow — each
+      one narrows when the rail expands, widens when it collapses.
+      No column should clip past the right edge of the white card.
 - [ ] Type in search and select Status / SBU / FY — no visible effect
       on a gallery yet (you build it in Part 5).
 - [ ] Click Reset — search clears, dropdowns return to defaults.
+
+> **If you already built Part 3 with the old hard-coded X/Width values
+> (14, 228, 442, …, all Width=200):** select each control in the tree
+> and update only its X and Width properties to the formulas above.
+> Other properties stay as you set them. The Search box stays at
+> X=`14`; the rest chain off the previous control.
 
 If anything looks misaligned, double-check that each X matches the
 column reference in Step 13.
@@ -429,24 +461,38 @@ Inside `conGallery`, Insert → **Rectangle**.
 | Fill | `theme.Maroon` |
 | BorderThickness | `0` |
 
-### Step 23 — Column labels (running-sum X)
+### Step 23 — Column labels (responsive)
 
-All nine header labels live inside `recGalleryHeader`. Use these exact X
-values — they're the running sum starting at 14. Same X / Width pattern
-will repeat in Part 5 for the gallery template, so getting these right
-matters.
+All nine header labels live inside `recGalleryHeader`. To make the
+gallery reflow when the rail toggles, each Width scales with the
+current card width, and each X chains off the previous column.
+
+**The scale ratio** (used by every Width below):
+
+```powerfx
+Parent.Width / 1244
+```
+
+1244 is the design width with the rail collapsed (the running sum of
+14 + 100 + 320 + 120 + 160 + 150 + 60 + 130 + 110 + 80). At runtime
+`Parent.Width` is whatever `recGalleryHeader.Width` resolves to (which
+equals `conGallery.Width`), so all nine columns shrink proportionally
+when the rail expands and grow back when it collapses.
+
+Insert the labels in order (1 → 9), because each X references the
+previous one.
 
 | # | Name | Text | X | Width |
-|---|------|------|----|-------|
-| 1 | `lblColUCID` | `"UCID"` | `14` | `100` |
-| 2 | `lblColName` | `"Use Case Name"` | `114` | `320` |
-| 3 | `lblColSBU` | `"SBU"` | `434` | `120` |
-| 4 | `lblColOwner` | `"AI Solution Owner"` | `554` | `160` |
-| 5 | `lblColStatus` | `"Status"` | `714` | `150` |
-| 6 | `lblColFY` | `"FY"` | `864` | `60` |
-| 7 | `lblColValue` | `"Realized Value"` | `924` | `130` |
-| 8 | `lblColUpdated` | `"Last Updated"` | `1054` | `110` |
-| 9 | `lblColAction` | `""` | `1164` | `80` |
+|---|------|------|---|-------|
+| 1 | `lblColUCID` | `"UCID"` | `14 * Parent.Width / 1244` | `100 * Parent.Width / 1244` |
+| 2 | `lblColName` | `"Use Case Name"` | `lblColUCID.X + lblColUCID.Width` | `320 * Parent.Width / 1244` |
+| 3 | `lblColSBU` | `"SBU"` | `lblColName.X + lblColName.Width` | `120 * Parent.Width / 1244` |
+| 4 | `lblColOwner` | `"AI Solution Owner"` | `lblColSBU.X + lblColSBU.Width` | `160 * Parent.Width / 1244` |
+| 5 | `lblColStatus` | `"Status"` | `lblColOwner.X + lblColOwner.Width` | `150 * Parent.Width / 1244` |
+| 6 | `lblColFY` | `"FY"` | `lblColStatus.X + lblColStatus.Width` | `60 * Parent.Width / 1244` |
+| 7 | `lblColValue` | `"Realized Value"` | `lblColFY.X + lblColFY.Width` | `130 * Parent.Width / 1244` |
+| 8 | `lblColUpdated` | `"Last Updated"` | `lblColValue.X + lblColValue.Width` | `110 * Parent.Width / 1244` |
+| 9 | `lblColAction` | `""` | `lblColUpdated.X + lblColUpdated.Width` | `80 * Parent.Width / 1244` |
 
 All nine share these properties:
 
@@ -459,12 +505,10 @@ All nine share these properties:
 | Color | `White` |
 | Font | `theme.FontFamily` |
 
-> **Width note:** the nine columns sum to 1244 px. With the rail
-> collapsed the `conPage` width is ≈ 1318, so everything fits with room
-> to spare. With the rail expanded `conPage` is ≈ 1098 wide and the
-> last column will clip. Either keep the rail collapsed while using
-> this screen, or shrink the columns proportionally and update Part 5's
-> template controls to match the new X values.
+> **Why this works:** the nine bases (14, 100, 320, …, 80) sum to
+> exactly 1244 px. Multiplying every X and Width by
+> `Parent.Width / 1244` makes them sum to exactly `Parent.Width`, so
+> the row always fills the card with no clipping in either rail state.
 
 ### Step 24 — Sanity check
 
@@ -528,18 +572,22 @@ template (the template highlights with a dashed border). Insert →
 
 Still inside the template, insert these seven labels. Every label uses
 Y=`(galUseCases.TemplateHeight - Self.Height) / 2` and Font=
-`theme.FontFamily`. Height is 16 except where noted. **X and Width must
-match the header table in Step 23 exactly** or the columns will drift.
+`theme.FontFamily`. Height is 16 except where noted.
+
+**X and Width reference the header column directly.** This guarantees
+every row column lines up under its header — when the rail toggles
+and the header columns reflow, the rows reflow with them. No
+duplicated math.
 
 | # | Control | Name | Text | X | Width | Size | Color | FontWeight |
-|---|---------|------|------|----|-------|------|-------|-----------|
-| 1 | Label | `lblUCID` | `ThisItem.UCID` | `14` | `100` | 12 | `theme.Ink3` | `FontWeight.Normal` |
-| 2 | Label | `lblName` | `ThisItem.Name` | `114` | `320` | 13 | `theme.Ink` | `FontWeight.Semibold` |
-| 3 | Label | `lblSBU` | `ThisItem.SBU` | `434` | `120` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 4 | Label | `lblOwner` | `ThisItem.Owner` | `554` | `160` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 5 | Label | `lblFY` | `ThisItem.FY` | `864` | `60` | 13 | `theme.Ink2` | `FontWeight.Normal` |
-| 6 | Label | `lblValue` | (see below) | `924` | `130` | 13 | `theme.Ink` | `FontWeight.Normal` |
-| 7 | Label | `lblUpdated` | (see below) | `1054` | `110` | 12 | `theme.Ink2` | `FontWeight.Normal` |
+|---|---------|------|------|---|-------|------|-------|-----------|
+| 1 | Label | `lblUCID` | `ThisItem.UCID` | `lblColUCID.X` | `lblColUCID.Width` | 12 | `theme.Ink3` | `FontWeight.Normal` |
+| 2 | Label | `lblName` | `ThisItem.Name` | `lblColName.X` | `lblColName.Width` | 13 | `theme.Ink` | `FontWeight.Semibold` |
+| 3 | Label | `lblSBU` | `ThisItem.SBU` | `lblColSBU.X` | `lblColSBU.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 4 | Label | `lblOwner` | `ThisItem.Owner` | `lblColOwner.X` | `lblColOwner.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 5 | Label | `lblFY` | `ThisItem.FY` | `lblColFY.X` | `lblColFY.Width` | 13 | `theme.Ink2` | `FontWeight.Normal` |
+| 6 | Label | `lblValue` | (see below) | `lblColValue.X` | `lblColValue.Width` | 13 | `theme.Ink` | `FontWeight.Normal` |
+| 7 | Label | `lblUpdated` | (see below) | `lblColUpdated.X` | `lblColUpdated.Width` | 12 | `theme.Ink2` | `FontWeight.Normal` |
 
 `lblValue.Text`:
 
@@ -571,11 +619,15 @@ Still inside the template, Insert → **Custom** → pick `cmpStatusPill`
 | Property | Value |
 |----------|-------|
 | Name | `cmpStatusPill_1` |
-| X | `714` |
+| X | `lblColStatus.X` |
 | Y | `(galUseCases.TemplateHeight - Self.Height) / 2` |
-| Width | `120` |
+| Width | `lblColStatus.Width * 0.8` |
 | Height | `24` |
 | InputStatus | `ThisItem.Status` |
+
+(The `* 0.8` leaves ~20% of the column as right-side breathing room,
+matching the 120-in-150 ratio from the original spec. The pill still
+sits at the left edge of the Status column.)
 
 If `cmpStatusPill` doesn't appear under Custom, you skipped building it
 — return to `01-app-setup.md` section 4 and create it first.
@@ -588,9 +640,9 @@ Still inside the template, Insert → **Button**.
 |----------|-------|
 | Name | `btnView` |
 | Text | `"View"` |
-| X | `1164` |
+| X | `lblColAction.X` |
 | Y | `(galUseCases.TemplateHeight - Self.Height) / 2` |
-| Width | `64` |
+| Width | `lblColAction.Width * 0.8` |
 | Height | `28` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
@@ -620,9 +672,23 @@ Preview:
 - [ ] Typing `"Mortgage"` in Search filters to 1 row.
 - [ ] Setting Status to `"Development"` filters to 2 rows.
 - [ ] Reset → all 10 rows return.
+- [ ] **Toggle the rail (hamburger).** Every column should reflow —
+      narrower when the rail expands, wider when it collapses. The
+      View button must never clip past the right edge of the gallery
+      card. Row cells must stay aligned under their header labels in
+      both states.
 
-If a column drifts a few pixels left or right, cross-check its X
-against the table in Step 23.
+If a column drifts a few pixels left or right, the row label is
+probably pointing at the wrong header column — cross-check Step 27
+(`lblXXX.X` should equal `lblColXXX.X` for the same column number).
+
+> **If you already built Parts 4/5 with the old fixed X/Width values
+> (14, 114, 434, …, Width 100/320/120/…):** select each affected
+> control in the tree and update only its X and Width to the formulas
+> above. All other properties stay the same. The order to update is:
+> Step 23 first (all 9 header labels), then Step 27 (7 row labels),
+> then Step 28 (pill) and Step 29 (View button). Update the header
+> first because the row controls reference it.
 
 ---
 
@@ -750,8 +816,9 @@ in `02-build-guide.md`).
 |---------|-------|-----|
 | Gallery shows no rows | `filteredUseCases` is empty, or filters too restrictive | Click `App` in the tree, check `Formulas` contains the `filteredUseCases =` block from `01-app-setup.md` section 3. Reset filters. |
 | Gallery shows red squiggle on Items | `filteredUseCases` isn't defined as a named formula | Same as above — paste the block into `App.Formulas` (not `App.OnStart`). |
-| Last column clips off the right | Rail is expanded; column widths sum to > content width | Collapse the rail (hamburger), or shrink each column proportionally and update both Step 23 and Step 27. |
-| Columns drift from the header labels | One template control has a wrong X | Cross-check every X in Step 27 against the X in Step 23 — they must match per column. |
+| Last column clips off the right when rail expands | Header / row controls were built with hard-coded X/Width instead of the `* Parent.Width / 1244` formulas | Apply the migration note at the bottom of Step 30 — update the 9 header labels (Step 23), then the 7 row labels (Step 27), then the pill (Step 28) and View button (Step 29). |
+| Columns drift from the header labels | A row label points at the wrong header column | In Step 27, `lblXXX.X` must equal `lblColXXX.X` for the same column number (e.g. `lblSBU.X = lblColSBU.X`, not `lblColOwner.X`). |
+| Header columns reflow but rows don't (or vice versa) | One side uses formulas, the other uses fixed values | Both Step 23 and Step 27 must use the formula approach. Mixing fixed and formula causes the rows to drift away from the header on rail toggle. |
 | Status pill missing | `cmpStatusPill` not in tree | Build it per `01-app-setup.md` section 4 first. |
 | Status pill shows the wrong color | `InputStatus` typed wrong, or doesn't match Code in `colStatus` | Status values must be one of: Rationale, DataPrep, Development, Testing, Deployment, Monitoring, Decommissioning. |
 | Row click does nothing | OnSelect is on the template instead of the gallery | Click the gallery itself (not a child), put the formula from Step 25 there. |
