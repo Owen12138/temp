@@ -403,6 +403,12 @@ No page-index variable, no Next/Prev buttons. The gallery's own scroll handles e
 
 ## Screen 3 · srcDetail (Detail page with side rail)
 
+> **Build this screen using [`08-srcdetail-guide.md`](08-srcdetail-guide.md).**
+> That file replaces this section with a 59-step walkthrough — Insert
+> instructions for every control, full property tables, and a sanity
+> check after each part. The summary below is kept as a reference for
+> the overall control tree and section-by-section spec.
+
 ### Control tree
 
 ```

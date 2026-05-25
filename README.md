@@ -41,7 +41,10 @@ In Power Apps Studio, create a new blank Tablet-landscape Canvas app, then:
    `04-left-rail-guide.md` instead. For the Use Case List screen
    (`srcList`), follow the step-by-step **`07-scrlist-guide.md`** — it
    replaces section "Screen 2 · srcList" with numbered Insert steps,
-   full property tables, and a sanity check after each part.
+   full property tables, and a sanity check after each part. For the
+   Detail screen (`srcDetail`), follow **`08-srcdetail-guide.md`** —
+   same step-by-step format, covers the two-column layout, section nav,
+   status stepper, value table with edit modal, and checklist galleries.
    *Estimated time: 4–6 hrs total (~1 hr per screen, Detail page is heaviest).*
 
 3. **`03-formulas-reference.md`** — A flat lookup of every Power Fx formula
