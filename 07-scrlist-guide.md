@@ -812,8 +812,14 @@ scroll-status dot on the right.
 
 ### Step 31 — Footer container
 
+> **Why a Container and not a Rectangle?** A Rectangle is a primitive
+> shape — Power Apps won't let you drop anything inside it. We need
+> the footer to host four children (top-border rectangle, count label,
+> scroll dot, scroll-status label), so it must be a Container. The
+> `con` prefix in the name reflects that.
+
 Inside `conGallery` (not inside the gallery template — back out first),
-Insert → **Rectangle**.
+Insert → **Container** (the classic Container, not horizontal/vertical).
 
 | Property | Value |
 |----------|-------|
@@ -836,6 +842,9 @@ Add a 1px top border. Inside `conGalleryFooter`, Insert → **Rectangle**:
 | Height | `1` |
 | Fill | `gblTheme.Border` |
 | BorderThickness | `0` |
+
+(The Rectangle works as a child here because its **parent** is the
+Container `conGalleryFooter` — not another Rectangle.)
 
 ### Step 32 — Count label (left)
 
@@ -947,3 +956,4 @@ in `02-build-guide.md`).
 | Hover on rows does nothing visible | You're testing in Studio edit mode | Press F5 — hover effects only run in preview. |
 | Filter card is too short / tall | Wrong Height on `conFilterCard` | Should be exactly `92`. |
 | Gallery footer overlaps the last row | Gallery Height didn't reserve 40 for the footer | Set `galUseCases.Height = Parent.Height - 36 - 40`. |
+| Can't insert anything inside `conGalleryFooter` — Studio greys out / does nothing | It was inserted as a Rectangle, which can't have children | Delete it and re-insert as a classic **Container** (Step 31). Then add `recFooterTop`, `lblFooterCount`, `icnScrollDot`, `lblScrollStatus` inside. |
