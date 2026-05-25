@@ -67,10 +67,12 @@ In Power Apps Studio, create a new blank Tablet-landscape Canvas app, then:
 
 - **The collapsible side rail will snap, not animate.** Canvas has no CSS
   transitions. This is a permanent limitation, not a v1 cut.
-- **The list uses infinite scroll, not pagination.** The gallery loads all
-  filtered rows at once and lets Canvas's built-in virtualisation handle
-  rendering. The footer label updates reactively; no page-index variable
-  is needed.
+- **The list shows every matching row at once — no pagination, no
+  lazy-load.** The gallery sets `Items = filteredUseCases` and Canvas
+  virtualises rendering. Scrolling moves through the loaded list; it
+  doesn't fetch more. The footer reports filter state (e.g. `"8 hidden
+  by filters"`), not load state. Switch to `FirstN(...) / Skip(...)`
+  if you later need true paging.
 - **Pixel-perfect match to the HTML is ~90%.** Power Apps controls have
   their own internal padding and focus rings that won't perfectly match
   the prototype's CSS. Users won't notice; designers will.

@@ -378,7 +378,7 @@ Add a 1px bottom rect inside the template (`Fill: gblTheme.Border`, Height: 1, Y
 
 ### conGalleryFooter
 
-White-grey footer matching the HTML's infinite-scroll footer. Two children, laid out with `LayoutJustifyContent: SpaceBetween`:
+White-grey footer. Two children, laid out with `LayoutJustifyContent: SpaceBetween`:
 
 - **Left label** (`lblRepoCount`): count of visible rows vs. total.
   ```powerfx
@@ -386,16 +386,19 @@ White-grey footer matching the HTML's infinite-scroll footer. Two children, laid
   ```
   Size 12, Color `gblTheme.Ink3`.
 
-- **Right label** (`lblScrollStatus`): scroll progress indicator.
+- **Right label** (`lblScrollStatus`): filter status indicator.
   ```powerfx
   If(CountRows(filteredUseCases) >= CountRows(colUseCases),
-     "All use cases loaded",
-     "Scroll to load more"
+     "All " & Text(CountRows(colUseCases)) & " use cases shown",
+     Text(CountRows(colUseCases) - CountRows(filteredUseCases)) & " hidden by filters"
   )
   ```
   Size 12, FontWeight Semibold, Color `gblTheme.Ink2`. Prepend a small 7×7
   maroon circle (Fill `gblTheme.Maroon`, BorderRadius 999) to the left of this
-  label to match the HTML's `.scroll-dot`.
+  label as a status accent. (The HTML mock implied "scroll to load more"
+  here; the Power Apps gallery sets `Items = filteredUseCases` and
+  already has every matching row, so the label reports filter state
+  rather than load state.)
 
 No page-index variable, no Next/Prev buttons. The gallery's own scroll handles everything.
 

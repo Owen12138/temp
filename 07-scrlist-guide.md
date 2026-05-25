@@ -884,14 +884,21 @@ Inside `conGalleryFooter`, Insert → **Label**.
 | Property | Value |
 |----------|-------|
 | Name | `lblScrollStatus` |
-| Text | `If(CountRows(filteredUseCases) >= CountRows(colUseCases), "All use cases loaded", "Scroll to load more")` |
+| Text | `If(CountRows(filteredUseCases) >= CountRows(colUseCases), "All " & Text(CountRows(colUseCases)) & " use cases shown", Text(CountRows(colUseCases) - CountRows(filteredUseCases)) & " hidden by filters")` |
 | X | `icnScrollDot.X + icnScrollDot.Width + 8` |
 | Y | `(Parent.Height - Self.Height) / 2` |
-| Width | `200` |
+| Width | `220` |
 | Height | `20` |
 | Size | `12` |
 | FontWeight | `FontWeight.Semibold` |
 | Color | `gblTheme.Ink2` |
+
+> **Why not "Scroll to load more"?** Earlier drafts copied that text
+> from the HTML prototype, but the gallery here sets
+> `Items = filteredUseCases` — every matching row is already loaded.
+> Scrolling moves through the visible list (Power Apps virtualises the
+> render), but it doesn't fetch anything. Rows that don't show are
+> filtered out, not pending — so the label tells you that directly.
 
 ### Step 35 — Sanity check
 
@@ -900,9 +907,10 @@ Preview:
 - [ ] Footer strip pinned at the bottom of the gallery card with a 1px
       top border.
 - [ ] Left: `"Showing 10 of 10"`.
-- [ ] Right: maroon dot + `"All use cases loaded"` in semibold.
-- [ ] Apply any filter; the count updates and the status flips to
-      `"Scroll to load more"` if the filtered count is less than total.
+- [ ] Right: maroon dot + `"All 10 use cases shown"` in semibold.
+- [ ] Apply any filter (e.g. Status = "Monitoring" → 2 rows visible).
+      The left label updates to `"Showing 2 of 10"`; the right label
+      flips to `"8 hidden by filters"`.
 
 ---
 

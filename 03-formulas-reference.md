@@ -32,16 +32,22 @@ Set(filterFY, "F26")
 ```
 
 ```powerfx
-// "Showing N of M" footer label  (infinite scroll — no page offset)
+// "Showing N of M" footer label
+// (gallery uses Items = filteredUseCases; all matching rows are loaded
+// at once — there is no paging/offset, so this is just current vs total)
 "Showing " & Text(CountRows(filteredUseCases)) &
 " of "     & Text(CountRows(colUseCases))
 ```
 
 ```powerfx
-// Scroll-status label (right side of footer)
+// Filter-status label (right side of footer)
+// Used to say "Scroll to load more", which was wrong: scrolling doesn't
+// load anything because the gallery already has every filteredUseCases
+// row. Now reports filter state instead — hidden rows are filtered, not
+// pending.
 If(CountRows(filteredUseCases) >= CountRows(colUseCases),
-   "All use cases loaded",
-   "Scroll to load more"
+   "All " & Text(CountRows(colUseCases)) & " use cases shown",
+   Text(CountRows(colUseCases) - CountRows(filteredUseCases)) & " hidden by filters"
 )
 ```
 
