@@ -311,9 +311,9 @@ White card, padding 14×16, BorderRadius 4, Border `gblTheme.Border`.
 | TextInput | `txtSearch` | HintText: `"UCID, name, owner…"`, OnChange: `Set(filterSearch, Self.Text)` |
 | Dropdown | `ddStatus` | Items: `["All Statuses", "Rationale", "Data Prep", "Development", "Testing", "Deployment", "Monitoring", "Decommissioning"]`, Default: `filterStatus`, OnChange: `Set(filterStatus, Self.Selected.Value)` |
 | Dropdown | `ddSBU` | Items: `Concat(["All SBUs"], colSBU)` (or just `["All SBUs"; "PBB"; "Capital Markets"; "Wealth"; "Commercial"; "Direct Banking"]`), Default: `filterSBU`, OnChange: `Set(filterSBU, Self.Selected.Value)` |
-| Dropdown | `ddFY`     | Items: `["F26", "F25", "F24"]`, Default: `filterFY`, OnChange: `Set(filterFY, Self.Selected.Value)` |
+| Dropdown | `ddFY`     | Items: `["All FYs", "F26", "F25", "F24"]`, Default: `filterFY`, OnChange: `Set(filterFY, Self.Selected.Value)` |
 | Dropdown | `ddOwner`  | Items: `Distinct(colUseCases, Owner)`, Default: `filterOwner`, AllowEmptySelection: `true`, OnChange: `Set(filterOwner, If(IsBlank(Self.Selected), "", Self.Selected.Value))` |
-| Button | `btnReset` | Text: `"Reset"`, OnSelect: `Set(filterSearch,""); Reset(txtSearch); Set(filterStatus,"All Statuses"); Set(filterSBU,"All SBUs"); Set(filterFY,"F26"); Set(filterOwner,""); Reset(ddOwner)` |
+| Button | `btnReset` | Text: `"Reset"`, OnSelect: `Set(filterSearch,""); Reset(txtSearch); Set(filterStatus,"All Statuses"); Set(filterSBU,"All SBUs"); Set(filterFY,"All FYs"); Set(filterOwner,""); Reset(ddOwner)` |
 
 Label each filter with a small caption label (Size 11, Bold, Color `gblTheme.Ink3`) above the control.
 

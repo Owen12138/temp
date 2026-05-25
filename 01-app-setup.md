@@ -233,7 +233,7 @@ Set(sideCollapsed, true);
 Set(filterSearch, "");
 Set(filterStatus, "All Statuses");
 Set(filterSBU, "All SBUs");
-Set(filterFY, "F26");
+Set(filterFY, "All FYs");
 Set(filterOwner, "");
 
 // Navigate to landing
@@ -256,7 +256,7 @@ filteredUseCases =
          filterSearch in Owner) &&
         (filterStatus = "All Statuses" || Status = filterStatus) &&
         (filterSBU    = "All SBUs"    || SBU    = filterSBU) &&
-        (filterFY     = ""            || FY     = filterFY) &&
+        (filterFY     = "All FYs"     || FY     = filterFY) &&
         (filterOwner  = ""            || Owner  = filterOwner)
     );
 

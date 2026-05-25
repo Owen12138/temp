@@ -353,11 +353,17 @@ Dropdown:
 | Y | `30` |
 | Width | `txtSearch.Width` |
 | Height | `40` |
-| Items | `["F26","F25","F24"]` |
+| Items | `["All FYs","F26","F25","F24"]` |
 | Default | `filterFY` |
 | OnChange | `Set(filterFY, Self.Selected.Value)` |
 | BorderColor | `gblTheme.Border` |
 | BorderThickness | `1` |
+
+> FY follows the same "All sentinel" pattern as Status and SBU. The
+> `(filterFY = "All FYs" || FY = filterFY)` clause in `App.Formulas`
+> short-circuits the FY filter whenever the user picks the All option.
+> `filterFY` is initialized to `"All FYs"` in App.OnStart so the
+> dropdown starts on All and shows every row.
 
 ### Step 18 — Owner dropdown + caption
 
@@ -407,7 +413,7 @@ Inside `conFilterCard`, Insert → **Button**.
 | BorderColor | `gblTheme.Maroon` |
 | BorderThickness | `1` |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| OnSelect | `Set(filterSearch, ""); Reset(txtSearch); Set(filterStatus, "All Statuses"); Set(filterSBU, "All SBUs"); Set(filterFY, "F26"); Set(filterOwner, ""); Reset(ddOwner)` |
+| OnSelect | `Set(filterSearch, ""); Reset(txtSearch); Set(filterStatus, "All Statuses"); Set(filterSBU, "All SBUs"); Set(filterFY, "All FYs"); Set(filterOwner, ""); Reset(ddOwner)` |
 
 ### Step 20 — Sanity check
 
@@ -965,3 +971,4 @@ in `02-build-guide.md`).
 | Filter card is too short / tall | Wrong Height on `conFilterCard` | Should be exactly `92`. |
 | Gallery footer overlaps the last row | Gallery Height didn't reserve 40 for the footer | Set `galUseCases.Height = Parent.Height - 36 - 40`. |
 | Can't insert anything inside `conGalleryFooter` — Studio greys out / does nothing | It was inserted as a Rectangle, which can't have children | Delete it and re-insert as a classic **Container** (Step 31). Then add `recFooterTop`, `lblFooterCount`, `icnScrollDot`, `lblScrollStatus` inside. |
+| Selecting "All FYs" in `ddFY` shows zero rows (or a different filter's "All" option does the same) | The `App.Formulas` filter clause for that field doesn't match the dropdown's sentinel string | The clause must compare against the exact "All …" string the dropdown writes. E.g. `(filterFY = "All FYs" \|\| FY = filterFY)`. Also update `App.OnStart` so the initial value matches (`Set(filterFY, "All FYs")`) and `btnReset.OnSelect` so Reset returns to the All option. If you used a different label than `"All FYs"`, swap it in all four places. |

@@ -18,7 +18,7 @@ filteredUseCases =
          filterSearch in Owner) &&
         (filterStatus = "All Statuses" || Status = filterStatus) &&
         (filterSBU    = "All SBUs"    || SBU    = filterSBU) &&
-        (filterFY     = ""            || FY     = filterFY)
+        (filterFY     = "All FYs"     || FY     = filterFY)
     );
 ```
 
@@ -28,7 +28,7 @@ Set(filterSearch, "");
 Reset(txtSearch);
 Set(filterStatus, "All Statuses");
 Set(filterSBU, "All SBUs");
-Set(filterFY, "F26")
+Set(filterFY, "All FYs")
 ```
 
 ```powerfx
