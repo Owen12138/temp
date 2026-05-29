@@ -73,14 +73,18 @@ Set(gblTheme, {
 // ──────────────────────────────────────────────────────────────
 // LOOKUPS (will become Dataverse choice columns later)
 // ──────────────────────────────────────────────────────────────
+// Order drives the Status stepper (Step 29-32 in the srcDetail guide):
+// the stepper reads CountRows(colStatus) for the cell count and
+// LookUp(colStatus, Code = selectedUC.Status, Order) for the active step.
+// Add/remove a status here and the stepper re-lays-out automatically.
 ClearCollect(colStatus,
-    { Code: "Rationale",      Label: "Rationale",       Color: gblTheme.Ink3 },
-    { Code: "DataPrep",       Label: "Data Prep",       Color: gblTheme.Ink3 },
-    { Code: "Development",    Label: "Development",     Color: gblTheme.Info },
-    { Code: "Testing",        Label: "Testing",         Color: gblTheme.Warn },
-    { Code: "Deployment",     Label: "Deployment",      Color: gblTheme.Ok },
-    { Code: "Monitoring",     Label: "Monitoring",      Color: gblTheme.Monitor },
-    { Code: "Decommissioning",Label: "Decommissioning", Color: gblTheme.Decom }
+    { Order: 1, Code: "Rationale",      Label: "Rationale",       Color: gblTheme.Ink3 },
+    { Order: 2, Code: "DataPrep",       Label: "Data Prep",       Color: gblTheme.Ink3 },
+    { Order: 3, Code: "Development",    Label: "Development",     Color: gblTheme.Info },
+    { Order: 4, Code: "Testing",        Label: "Testing",         Color: gblTheme.Warn },
+    { Order: 5, Code: "Deployment",     Label: "Deployment",      Color: gblTheme.Ok },
+    { Order: 6, Code: "Monitoring",     Label: "Monitoring",      Color: gblTheme.Monitor },
+    { Order: 7, Code: "Decommissioning",Label: "Decommissioning", Color: gblTheme.Decom }
 );
 
 ClearCollect(colSBU,

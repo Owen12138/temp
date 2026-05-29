@@ -139,41 +139,46 @@ Switch(true,
 
 ## E. Status stepper (Use Case Info section)
 
+The stepper is driven entirely by `colStatus` (built in App.OnStart),
+which carries `Order` 1–7 for Rationale … Decommissioning. The gallery
+`Items` is just `colStatus`, `TemplateSize` is `Self.Width /
+CountRows(colStatus)`, and the active-step index comes from:
+
 ```powerfx
 // Hidden helper label lblCurrentIdx.Text on the section
-LookUp(
-    Table(
-        {C:"Rationale",      I:1},
-        {C:"DataPrep",       I:2},
-        {C:"Development",    I:3},
-        {C:"Testing",        I:4},
-        {C:"Deployment",     I:5},
-        {C:"Monitoring",     I:6}
-    ),
-    C = selectedUC.Status,
-    I
-)
+LookUp(colStatus, Code = selectedUC.Status, Order)
+```
+
+Track geometry (so the line threads through the circle centers):
+
+```powerfx
+// recStepTrack — inactive line, first-center to last-center
+X:     galStepper.X + galStepper.Width / (CountRows(colStatus) * 2)
+Width: galStepper.Width * (CountRows(colStatus) - 1) / CountRows(colStatus)
+
+// recStepTrackFill — maroon fill up to the current step
+Width: recStepTrack.Width * (Value(lblCurrentIdx.Text) - 1) / (CountRows(colStatus) - 1)
 ```
 
 Within the stepper gallery template:
 
 ```powerfx
 // Circle fill — done OR current
-If(ThisItem.Idx <= lblCurrentIdx.Text, gblTheme.Maroon, White)
+If(ThisItem.Order <= lblCurrentIdx.Text, gblTheme.Maroon, White)
 
 // Circle border
-If(ThisItem.Idx <= lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
+If(ThisItem.Order <= lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
 
 // Number/text color
-If(ThisItem.Idx <= lblCurrentIdx.Text, White, gblTheme.Ink3)
+If(ThisItem.Order <= lblCurrentIdx.Text, White, gblTheme.Ink3)
 
 // Label color
-If(ThisItem.Idx <  lblCurrentIdx.Text, gblTheme.Ink2,
-   ThisItem.Idx = lblCurrentIdx.Text, gblTheme.Maroon,
+If(ThisItem.Order <  lblCurrentIdx.Text, gblTheme.Ink2,
+   ThisItem.Order = lblCurrentIdx.Text, gblTheme.Maroon,
    gblTheme.Ink3)
 
 // Connector line fill (between steps)
-If(ThisItem.Idx < lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
+If(ThisItem.Order < lblCurrentIdx.Text, gblTheme.Maroon, gblTheme.BorderStrong)
 ```
 
 ---

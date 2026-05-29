@@ -817,7 +817,7 @@ hidden label. Inside `conSectionInfo`, Insert → **Label**:
 | Property | Value |
 |----------|-------|
 | Name | `lblCurrentStatusIdx` |
-| Text | `LookUp(Table({C:"Rationale",I:1},{C:"DataPrep",I:2},{C:"Development",I:3},{C:"Testing",I:4},{C:"Deployment",I:5},{C:"Monitoring",I:6}), C = selectedUC.Status, I)` |
+| Text | `LookUp(colStatus, Code = selectedUC.Status, Order)` |
 | X | `0` |
 | Y | `0` |
 | Width | `1` |
@@ -826,24 +826,42 @@ hidden label. Inside `conSectionInfo`, Insert → **Label**:
 
 Setting Visible=false hides it but the Text formula still evaluates
 and is reachable as `lblCurrentStatusIdx.Text` from sibling controls.
+Because it reads the `Order` field from `colStatus` (set in
+App.OnStart, see `01-app-setup.md`), there is no separate copy of the
+status list to keep in sync — all seven statuses, including
+**Decommissioning**, flow from the one collection.
 
 ### Step 30 — Status stepper — track line
 
 Inside `conSectionInfo`, Insert → **Rectangle** (this is the inactive
-track behind all 6 circles):
+track behind all 7 circles). Its endpoints are derived from where the
+gallery (Step 31) actually places the first and last circle centers,
+so the line always lines up no matter how many statuses `colStatus`
+holds:
 
 | Property | Value |
 |----------|-------|
 | Name | `recStepTrack` |
-| X | `60` |
+| X | `galStepper.X + galStepper.Width / (CountRows(colStatus) * 2)` |
 | Y | `recInfoTitleBorder.Y + recInfoTitleBorder.Height + 36` |
-| Width | `Parent.Width - 56 - 80` |
+| Width | `galStepper.Width * (CountRows(colStatus) - 1) / CountRows(colStatus)` |
 | Height | `2` |
 | Fill | `gblTheme.BorderStrong` |
 | BorderThickness | `0` |
 
-The `-80` reserves 40 px of padding on each end so the line doesn't
-poke past the first and last circles.
+Why these formulas: the gallery lays out `CountRows(colStatus)` equal
+cells, each `galStepper.Width / CountRows(colStatus)` wide, and Step 32
+centers each circle in its cell. So the **first** circle's center is
+half a cell in from the gallery's left edge — that's the `/ 2` in the
+`X` formula — and the distance from the first to the last center is
+`(CountRows - 1)` whole cells, which is the `Width`. The track now
+starts and ends exactly on a circle center.
+
+> Forward reference: `recStepTrack.X` and `.Width` point at
+> `galStepper`, which you create in Step 31. Power Apps resolves
+> references by name regardless of tree/creation order, and there's no
+> cycle here (the gallery only reads `recStepTrack.Y`, a different
+> property), so the formulas turn valid the moment `galStepper` exists.
 
 Then Insert → **Rectangle** for the filled portion:
 
@@ -852,13 +870,15 @@ Then Insert → **Rectangle** for the filled portion:
 | Name | `recStepTrackFill` |
 | X | `recStepTrack.X` |
 | Y | `recStepTrack.Y` |
-| Width | `recStepTrack.Width * (Value(lblCurrentStatusIdx.Text) - 1) / 5` |
+| Width | `recStepTrack.Width * (Value(lblCurrentStatusIdx.Text) - 1) / (CountRows(colStatus) - 1)` |
 | Height | `2` |
 | Fill | `gblTheme.Maroon` |
 | BorderThickness | `0` |
 
-`(currentIdx - 1) / 5` is the fraction of the track to fill (0 at
-Rationale, 1.0 at Monitoring).
+`(currentIdx - 1) / (CountRows(colStatus) - 1)` is the fraction of the
+track to fill — 0 at Rationale (step 1), 1.0 at Decommissioning
+(step 7). Dividing by `CountRows - 1` keeps it correct if the status
+list grows or shrinks.
 
 ### Step 31 — Status stepper — horizontal gallery
 
@@ -871,25 +891,27 @@ Inside `conSectionInfo`, Insert → **Gallery** → **Blank horizontal**.
 | Y | `recStepTrack.Y - 24` |
 | Width | `Parent.Width - 56` |
 | Height | `64` |
-| TemplateSize | `(Self.Width) / 6` |
+| TemplateSize | `Self.Width / CountRows(colStatus)` |
 | TemplatePadding | `0` |
 | ShowScrollbar | `false` |
 | BorderThickness | `0` |
-| Items | (see formula below) |
+| Items | `colStatus` |
+
+Set **Items** to the collection directly:
 
 ```powerfx
-Table(
-    {Idx: 1, Code: "Rationale",   Label: "Rationale"},
-    {Idx: 2, Code: "DataPrep",    Label: "Data Prep"},
-    {Idx: 3, Code: "Development", Label: "Development"},
-    {Idx: 4, Code: "Testing",     Label: "Testing"},
-    {Idx: 5, Code: "Deployment",  Label: "Deployment"},
-    {Idx: 6, Code: "Monitoring",  Label: "Monitoring"}
-)
+colStatus
 ```
 
+`colStatus` (built in App.OnStart) already carries `Order`, `Code`,
+and `Label` for all seven statuses — Rationale through
+**Decommissioning** — so there's no second copy of the list to
+maintain. The template in Step 32 reads `ThisItem.Order` and
+`ThisItem.Label` from it.
+
 `TemplateSize` for a horizontal gallery is the **width** of each row,
-not the height. Dividing the gallery width by 6 gives equal cells.
+not the height. Dividing the gallery width by `CountRows(colStatus)`
+gives seven equal cells (and stays correct if the list changes).
 
 > **Tree order matters:** drag `galStepper` so it sits **above**
 > `recStepTrack` in the tree (later in the tree = on top in Power
@@ -908,12 +930,20 @@ Enter the template (chevron next to `galStepper`). Inside, Insert →
 |----------|-------|
 | Name | `circStep` |
 | X | `(Parent.TemplateWidth - Self.Width) / 2` |
-| Y | `20` |
+| Y | `16` |
 | Width | `18` |
 | Height | `18` |
 | BorderThickness | `2` |
-| BorderColor | `If(ThisItem.Idx <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.BorderStrong)` |
-| Fill | `If(ThisItem.Idx <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.Surface)` |
+| BorderColor | `If(ThisItem.Order <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.BorderStrong)` |
+| Fill | `If(ThisItem.Order <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.Surface)` |
+
+> **Vertical alignment:** `circStep.Y = 16` is what puts the circle's
+> center on the track line. The gallery sits at `recStepTrack.Y - 24`,
+> so the circle's center lands at `-24 + 16 + (18 / 2) = recStepTrack.Y
+> + 1` — the exact vertical center of the 2 px track. If you change the
+> gallery's `Y` offset or the circle's `Height`, re-balance this so
+> `galStepper.Y_offset + circStep.Y + circStep.Height / 2` equals
+> `recStepTrack.Height / 2` (= 1).
 
 Still inside the template, Insert → **Label**:
 
@@ -927,8 +957,8 @@ Still inside the template, Insert → **Label**:
 | Height | `18` |
 | Size | `11` |
 | Align | `Align.Center` |
-| Color | `If(ThisItem.Idx <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.Ink3)` |
-| FontWeight | `If(ThisItem.Idx = Value(lblCurrentStatusIdx.Text), FontWeight.Bold, FontWeight.Normal)` |
+| Color | `If(ThisItem.Order <= Value(lblCurrentStatusIdx.Text), gblTheme.Maroon, gblTheme.Ink3)` |
+| FontWeight | `If(ThisItem.Order = Value(lblCurrentStatusIdx.Text), FontWeight.Bold, FontWeight.Normal)` |
 | Font | `gblTheme.FontFamily` |
 
 Click outside to exit the template.
@@ -1092,8 +1122,11 @@ From `srcList`, click UC-0142. On Detail with section = Info:
 
 - [ ] Section card visible: white, rounded corners, gray border.
 - [ ] "Use Case Info" title in maroon, with a 2px maroon underline.
-- [ ] Status stepper: 6 circles with labels. Circles 1–3 are filled
-      maroon (Development is step 3); circles 4–6 are hollow gray.
+- [ ] Status stepper: 7 circles with labels (Rationale through
+      Decommissioning). Circles 1–3 are filled maroon (Development is
+      step 3); circles 4–7 are hollow gray. Each circle's center sits
+      exactly on the connecting line, and the line begins at the first
+      circle's center and ends at the last circle's center.
       The line behind connects them with maroon up to step 3.
 - [ ] Form below: Name, Problem Statement, AI Solution Description
       (full width), then a 2-column grid of Type, Status, SBU,
@@ -1800,7 +1833,7 @@ If all 13 boxes pass, `srcDetail` is done. Move on to `srcNew`
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | Screen errors with red squiggles on `selectedUC.Name`, `.UCID`, etc. on first load | `selectedUC` wasn't initialized as a typed record in `App.OnStart` | In `01-app-setup.md` section 2, ensure `selectedUC` is set to a literal record with **all 16 fields**, not `Blank()`. |
-| Stepper circles never highlight | `selectedUC.Status` doesn't match a code in `lblCurrentStatusIdx`'s LookUp table | Status codes must be exactly: `Rationale`, `DataPrep`, `Development`, `Testing`, `Deployment`, `Monitoring`. Check `colUseCases` data. |
+| Stepper circles never highlight | `selectedUC.Status` doesn't match a `Code` in `colStatus` | Status codes must be exactly one of `colStatus.Code`: `Rationale`, `DataPrep`, `Development`, `Testing`, `Deployment`, `Monitoring`, `Decommissioning`. Check `colUseCases` data. |
 | Status dropdown changes don't update the stepper | Dropdown OnChange writes the Label back to `Status` instead of the Code | Use `LookUp(colStatus, Label = Self.Selected.Value, Code)` — see Step 34 row 2. |
 | Sections all visible at once | A section's `Visible` formula is missing or evaluates to true unconditionally | Each `conSection*.Visible` must be `currentSection = "<key>"`. Check Step 27, 36, 40, 50, 51, 52, 53. |
 | Clicking section nav does nothing | Button's `OnSelect` is empty (e.g. when you copied `btnSecInfo` you forgot to retarget OnSelect) | Each button's OnSelect must be `Set(currentSection, "<Key>")` with the row's key — see Step 24 table. |
@@ -1814,7 +1847,9 @@ If all 13 boxes pass, `srcDetail` is done. Move on to `srcNew`
 | Modal Save creates a row but with `UCID = ""` | New-row branch missing `UCID: selectedUC.UCID` in the `Collect` | See Step 48 — the first branch of the `If(IsBlank(editingValueRow.UCID), …)` must include `UCID: selectedUC.UCID`. |
 | Progress bar fill is 0 width on first load | `govTotalCount` is 0 (no governance rows for this UCID), so `govProgressPct` is 0 | This is correct behavior. Confirm `colGovernance` has rows with `UCID = selectedUC.UCID`. |
 | OnChange Patch saves but other sections still show old values | Missing the `Set(selectedUC, LookUp(…))` line after Patch | Every form input's OnChange must Patch, then re-Set `selectedUC` so dependent labels refresh. |
-| Stepper labels overlap because columns are too narrow | Gallery `TemplateSize` (horizontal galleries = row width) is too small | Should be `Self.Width / 6`. If the gallery's Width is wrong, fix that first — should be `Parent.Width - 56`. |
+| Stepper labels overlap because columns are too narrow | Gallery `TemplateSize` (horizontal galleries = row width) is too small | Should be `Self.Width / CountRows(colStatus)` (7 cells). If the gallery's Width is wrong, fix that first — should be `Parent.Width - 56`. |
+| Track line doesn't reach / overshoots the end circles | `recStepTrack.X` / `.Width` still use the old magic numbers (`60`, `Parent.Width - 56 - 80`) | Derive them from the gallery: `X = galStepper.X + galStepper.Width / (CountRows(colStatus) * 2)`, `Width = galStepper.Width * (CountRows(colStatus) - 1) / CountRows(colStatus)` — see Step 30. |
+| Circles sit above or below the line | `circStep.Y` doesn't balance the gallery's `Y` offset | With `galStepper.Y = recStepTrack.Y - 24` and an 18 px circle, `circStep.Y` must be `16` so the center lands at `recStepTrack.Y + 1` — see Step 32. |
 | Two-column form fields overflow the right edge when rail expands | Field Width is hardcoded instead of using the half-col formula | Width must be `(Parent.Width - 56 - 24) / 2`. Same for right-column X anchor. |
 | Action bar overlaps the detail layout below | `conDetailLayout.Y` is `52` instead of `108` | Y must be `52 + 56 = 108` to clear both the header and the action bar. |
 | Toggle the rail and the action bar / detail layout don't shift | X formula is hardcoded instead of `If(sideCollapsed, 64, 220)` | Both `conActionBar.X` and `conDetailLayout.X` must use the formula. Width must subtract the same offset. |

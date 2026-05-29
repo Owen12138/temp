@@ -501,23 +501,23 @@ Visible: `currentSection = "Info"`. Fill White, Padding 24×28, BorderRadius 4.
 **Section header**: a label `"Use Case Info"` (Color `gblTheme.Maroon`, Size 16, Bold) with a bottom border rectangle 2px in `gblTheme.Maroon`.
 
 **Status stepper**: container, Fill `RGBA(250,250,250,1)`, Padding 10×14.
-For each of the 6 statuses ("Rationale", "Data Prep", "Development", "Testing", "Deployment", "Monitoring"), draw:
-- A circle (Width 18, Height 18) — Fill `If(StatusIndex <= currentStatusIndex, gblTheme.Maroon, White)`, with Border `gblTheme.BorderStrong`.
+For each of the 7 statuses ("Rationale", "Data Prep", "Development", "Testing", "Deployment", "Monitoring", "Decommissioning"), draw:
+- A circle (Width 18, Height 18) — Fill `If(ThisItem.Order <= currentStatusIndex, gblTheme.Maroon, White)`, with Border `gblTheme.BorderStrong`.
 - A label with the step name — Color logic same.
-- A 1px line rectangle between steps — Fill `If(stepIndex < currentStatusIndex, gblTheme.Maroon, gblTheme.BorderStrong)`.
+- A connecting track line behind the circles — its filled portion is `If(ThisItem.Order < currentStatusIndex, gblTheme.Maroon, gblTheme.BorderStrong)`.
 
-Use a horizontal Gallery for elegance. Items:
+Use a horizontal Gallery for elegance, driven straight off `colStatus`
+(it already carries `Order`, `Code`, `Label` for all seven statuses):
 ```powerfx
-Table(
-  {Idx:1, Code:"Rationale"},      {Idx:2, Code:"DataPrep"},
-  {Idx:3, Code:"Development"},    {Idx:4, Code:"Testing"},
-  {Idx:5, Code:"Deployment"},     {Idx:6, Code:"Monitoring"}
-)
+colStatus
 ```
 
 Inside each row, calculate `currentIdx` once: add a hidden label
 `lblCurrentIdx` outside the gallery with Text =
-`LookUp(Table({C:"Rationale",I:1},{C:"DataPrep",I:2},{C:"Development",I:3},{C:"Testing",I:4},{C:"Deployment",I:5},{C:"Monitoring",I:6}), C = selectedUC.Status, I)`.
+`LookUp(colStatus, Code = selectedUC.Status, Order)`. See
+`08-srcdetail-guide.md` Steps 29–32 for the exact geometry — the track
+endpoints and circle `Y` are derived so the line threads through every
+circle's center and the circles sit centered on the line.
 
 **Form fields** (2-column grid; "full" fields span both columns):
 
