@@ -519,33 +519,34 @@ Inside each row, calculate `currentIdx` once: add a hidden label
 endpoints and circle `Y` are derived so the line threads through every
 circle's center and the circles sit centered on the line.
 
-**Form fields** (2-column grid; "full" fields span both columns):
+**Form fields** — use a Power Apps **Edit form** (`frmInfo`) bound to
+`DataSource: colUseCases`, `Item: selectedUC`, `DefaultMode:
+FormMode.Edit`, `Columns: 2`. Add a **Save** button (`SubmitForm`) and
+set `frmInfo.OnSuccess = Set(selectedUC, frmInfo.LastSubmit)` so the
+rail-head pill and stepper refresh on save. The cards (full-width ones
+span both columns):
 
-| Field | Control | Default | Notes |
-|-------|---------|---------|-------|
-| Use Case Name (req, full) | TextInput | `selectedUC.Name` | Patch back in OnChange |
-| Problem Statement (full) | TextInput (multi-line) | `selectedUC.ProblemStatement` | |
-| AI Solution Description (full) | TextInput (multi-line) | `selectedUC.AISolution` | |
-| Type of Use Case | Dropdown | Items: `colUseCaseType`, Default: `selectedUC.Type` | |
-| Current Status | Dropdown | Items: `colStatus.Label`, Default: `LookUp(colStatus, Code = selectedUC.Status, Label)` | |
-| SBU (req) | Dropdown | Items: `colSBU`, Default: `selectedUC.SBU` | |
-| LOB / Sub-LOB | Dropdown | Items: list of LOBs filtered by SBU | |
-| Other LOBs Impacted (full) | TextInput | `""` | |
-| Completion Date (target) | DatePicker | `selectedUC.TargetDate` | |
-| Output Deliverable | Dropdown | Items: `["Real-time scoring"; "Dataset / Extract"; "Report"; "Dashboard"]` | |
-| Refresh Frequency | Dropdown | Items: `colRefreshFreq`, Default: `selectedUC.RefreshFreq` | |
-| Prerequisite for Other Initiatives | Dropdown | Items: `["Yes"; "No"]` | |
+| Field | Card / Control | Default | Notes |
+|-------|----------------|---------|-------|
+| Use Case Name (req, full) | TextInput | `Parent.Default` | Card Width = `frmInfo.Width` |
+| Problem Statement (full) | TextInput (multi-line) | `Parent.Default` | |
+| AI Solution Description (full) | TextInput (multi-line) | `Parent.Default` | |
+| Type of Use Case | Dropdown | Items: `colUseCaseType`, Default: `Parent.Default` | unlock card |
+| Current Status | Dropdown | Items: `colStatus.Label`, Default: `LookUp(colStatus, Code = Parent.Default, Label)` | card **Update**: `LookUp(colStatus, Label = ddStatus2.Selected.Value, Code)` |
+| SBU (req) | Dropdown | Items: `colSBU`, Default: `Parent.Default` | unlock card |
+| LOB / Sub-LOB | TextInput | `Parent.Default` | |
+| Completion Date (target) | DatePicker | `Parent.Default` | auto-generated |
+| Refresh Frequency | Dropdown | Items: `colRefreshFreq`, Default: `Parent.Default` | unlock card |
 
-For each input, set its OnChange to:
-```powerfx
-Patch(colUseCases, selectedUC,
-      { /* field name */ : Self.Text or Self.Selected.Value });
-Set(selectedUC, LookUp(colUseCases, UCID = selectedUC.UCID));
-```
+Because `colUseCases` is a plain collection, the form generates text
+inputs for the choice fields — unlock those cards, swap in a Dropdown,
+and point the card's **Update** at the dropdown's `Selected.Value`
+(for Status, write the **code** back via the LookUp above). *Other
+LOBs Impacted*, *Output Deliverable*, and *Prerequisite* aren't stored
+in v1; add them as custom cards only if you want them visible.
 
-(That second line keeps `selectedUC` fresh so other sections see updates.)
-
-Field labels: Size 13, FontWeight Semibold, Color `gblTheme.Ink2`, with a red asterisk label (`*`, Color `gblTheme.CIBCRed`) prepended for required fields.
+See `08-srcdetail-guide.md` Steps 33–34 for the full card-by-card
+walkthrough.
 
 ### conSectionContacts
 

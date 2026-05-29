@@ -756,7 +756,7 @@ Press F5 → click any row in `srcList` to land on Detail. Confirm:
 ## Part 6 — Section: Use Case Info (form panel)
 
 The biggest section. Header, horizontal status stepper, then a
-two-column form of 12 fields.
+two-column **Edit form** bound to `colUseCases` with a Save button.
 
 ### Step 27 — Section container
 
@@ -963,158 +963,146 @@ Still inside the template, Insert → **Label**:
 
 Click outside to exit the template.
 
-### Step 33 — Form fields — first 6 (two-column grid)
+### Step 33 — Form fields — Edit form (insert & bind)
 
-We have 12 fields total, arranged in 6 rows × 2 columns. Each cell
-uses a label + input pair. To keep things compact, we define column
-math once:
+We're using a Power Apps **Edit form** instead of hand-placed control
+pairs. The form auto-generates one data card per field, gives us
+built-in Required/validation and an explicit Save, and reflows its two
+columns responsively when the rail toggles.
 
-- **Column width:** `(Parent.Width - 56 - 24) / 2` — total width
-  minus 28 px padding × 2 minus 24 px gap between columns, divided
-  by 2.
-- **Left col X:** `28`
-- **Right col X:** `28 + ((Parent.Width - 56 - 24) / 2) + 24`
-- **Row Y:** `lblFormStart.Y + (rowIndex - 1) * 76` (each row 76 tall
-  for caption + input + gap).
+> **Behaviour change vs. live-patch:** with a form, edits live inside
+> the form until you press **Save** (`SubmitForm`). So the rail-head
+> pill and the status stepper update *on save*, not on every
+> keystroke. We wire `frmInfo.OnSuccess` to refresh `selectedUC` so
+> they update the instant the save completes.
 
-Add a hidden anchor label so all field Y values can reference it
-consistently. Inside `conSectionInfo`, Insert → **Label**:
+If you already built the old manual controls (`lblFormStart`, every
+`lblCap…`, `txt…`, `dd…`, `dp…`), **delete them now.** Keep the section
+container, the title + underline, and the entire status stepper.
+
+Inside `conSectionInfo`, Insert → **Edit form**:
 
 | Property | Value |
 |----------|-------|
-| Name | `lblFormStart` |
-| Text | `""` |
-| X | `0` |
+| Name | `frmInfo` |
+| DataSource | `colUseCases` |
+| Item | `selectedUC` |
+| DefaultMode | `FormMode.Edit` |
+| X | `28` |
 | Y | `galStepper.Y + galStepper.Height + 24` |
-| Width | `1` |
-| Height | `1` |
-| Visible | `false` |
-
-Now build the form. For each field, you'll insert **two** controls:
-a caption Label and the input. The caption sits at Y = row Y, the
-input at Y = row Y + 20. Below is the table; build top to bottom,
-left first then right.
-
-**Row 1 — Use Case Name (full width, required):**
-
-Caption `lblCapName` (full width):
-
-| Property | Value |
-|----------|-------|
-| Text | `"⬤ Use Case Name *"` (or `"Use Case Name *"`) |
-| X | `28` |
-| Y | `lblFormStart.Y` |
 | Width | `Parent.Width - 56` |
-| Height | `16` |
-| Size | `12` |
-| FontWeight | `FontWeight.Semibold` |
-| Color | `gblTheme.Ink2` |
-
-Input `txtName` (Text input, full width):
-
-| Property | Value |
-|----------|-------|
-| X | `28` |
-| Y | `lblCapName.Y + lblCapName.Height + 4` |
-| Width | `Parent.Width - 56` |
-| Height | `36` |
-| Default | `selectedUC.Name` |
+| Height | `560` |
+| Columns | `2` |
 | BorderColor | `gblTheme.Border` |
-| BorderThickness | `1` |
-| Color | `gblTheme.Ink` |
-| Size | `13` |
-| OnChange | `Patch(colUseCases, selectedUC, { Name: Self.Text }); Set(selectedUC, LookUp(colUseCases, UCID = selectedUC.UCID))` |
 
-**Row 2 — Problem Statement (full, multi-line):**
+`Columns = 2` with **Snap to columns** on gives the two-column grid:
+cards flow left→right and wrap to the next row. `Height` is fixed (the
+form does not auto-grow) — if cards clip at the bottom, raise it.
 
-Caption `lblCapProblem`: Y=`lblFormStart.Y + 64`, same style,
-Text=`"Problem Statement"`.
+**Pick the fields.** With `frmInfo` selected, open **Edit fields** in
+the right pane and make the form show exactly these nine, in this
+order (drag to reorder):
 
-Input `txtProblem` (Text input, mode Multiline):
+1. `Name`
+2. `ProblemStatement`
+3. `AISolution`
+4. `Type`
+5. `Status`
+6. `SBU`
+7. `LOB`
+8. `TargetDate`
+9. `RefreshFreq`
 
-| Property | Value |
-|----------|-------|
-| X | `28` |
-| Y | `lblCapProblem.Y + 20` |
-| Width | `Parent.Width - 56` |
-| Height | `72` |
-| Mode | `TextMode.MultiLine` |
-| Default | `selectedUC.ProblemStatement` |
-| BorderColor / Color / Size | (same as txtName) |
-| OnChange | `Patch(colUseCases, selectedUC, { ProblemStatement: Self.Text }); Set(selectedUC, LookUp(colUseCases, UCID = selectedUC.UCID))` |
+Remove every other auto-added card — `UCID`, `Owner`, `OwnerInitials`,
+`FY`, `RealizedValue`, `EstimatedValue`, `LastUpdated` — they aren't
+edited on this screen.
 
-**Row 3 — AI Solution Description (full, multi-line):**
+### Step 34 — Form fields — card widths, controls & Save
 
-Caption `lblCapSolution`: Y=`lblCapProblem.Y + 100`, Text=`"AI
-Solution Description"`.
+**Full-width cards.** Select the data card for `Name`,
+`ProblemStatement`, and `AISolution` in turn and set each card's
+**Width** to `frmInfo.Width`, so it takes a whole row and pushes the
+next card beneath it. For `ProblemStatement` and `AISolution`, also
+unlock the card (gear icon → **Advanced → Unlock**), select the inner
+text input, set `Mode = TextMode.MultiLine`, and raise the card
+**Height** (e.g. `120`).
 
-Input `txtSolution`: same as `txtProblem` but Default
-`selectedUC.AISolution` and OnChange writes to `AISolution`.
+The remaining six cards keep the default half-column width and flow
+into two columns automatically.
 
-### Step 34 — Form fields — remaining 9 (two-column)
+**Collection-bound dropdowns.** Because `colUseCases` is a plain
+collection (no choice metadata), the form generates *text inputs* for
+`Type`, `SBU`, and `RefreshFreq`. Convert each to a dropdown:
 
-Below the three full-width fields, we have nine half-width fields in
-a 5-row × 2-col grid (last row only fills the left cell). For each:
-caption Label, then Dropdown/DatePicker/TextInput input. Same OnChange
-pattern. Build them in this order:
+1. Select the card → gear → **Advanced → Unlock**.
+2. Delete the default `DataCardValue` text input.
+3. Insert → **Dropdown** inside the card; name it `ddType`, `ddSBU2`,
+   `ddRefresh` respectively.
+4. Set the dropdown **Items**, its **Default**, and the card's
+   **Update**:
 
-**Helper formulas you'll reuse:**
+| Card | Dropdown Items | Dropdown Default | DataCard **Update** |
+|------|----------------|------------------|---------------------|
+| Type | `colUseCaseType` | `Parent.Default` | `ddType.Selected.Value` |
+| SBU | `colSBU` | `Parent.Default` | `ddSBU2.Selected.Value` |
+| RefreshFreq | `colRefreshFreq` | `Parent.Default` | `ddRefresh.Selected.Value` |
 
-- Left col X: `28`
-- Right col X: `28 + ((Parent.Width - 56 - 24) / 2) + 24`
-- Half col Width: `(Parent.Width - 56 - 24) / 2`
-- Row N Y (N starts at 1 for the first row after Solution):
-  `lblCapSolution.Y + 100 + (N - 1) * 76`
+`Parent.Default` is the card's bound value (the field from
+`selectedUC`). The card's **Update** property is exactly what
+`SubmitForm` writes back to `colUseCases`.
 
-| # | Position | Caption | Input control | Items / Default | OnChange (field name in Patch) |
-|---|----------|---------|---------------|-----------------|--------------------------------|
-| 1 | Row 1, Left | `"Type of Use Case"` | Dropdown `ddType` | Items: `colUseCaseType`, Default: `selectedUC.Type` | `Type` ← `Self.Selected.Value` |
-| 2 | Row 1, Right | `"Current Status *"` | Dropdown `ddStatus2` | Items: `colStatus.Label`, Default: `LookUp(colStatus, Code = selectedUC.Status, Label)` | `Status` ← `LookUp(colStatus, Label = Self.Selected.Value, Code)` |
-| 3 | Row 2, Left | `"SBU *"` | Dropdown `ddSBU2` | Items: `colSBU`, Default: `selectedUC.SBU` | `SBU` ← `Self.Selected.Value` |
-| 4 | Row 2, Right | `"LOB / Sub-LOB"` | TextInput `txtLOB` | Default: `selectedUC.LOB` | `LOB` ← `Self.Text` |
-| 5 | Row 3, Left | `"Other LOBs Impacted"` | TextInput `txtOtherLOB` | Default: `""` | _(not stored in v1)_ |
-| 6 | Row 3, Right | `"Completion Date (target)"` | DatePicker `dpTarget` | Default: `selectedUC.TargetDate` | `TargetDate` ← `Self.SelectedDate` |
-| 7 | Row 4, Left | `"Output Deliverable"` | Dropdown `ddOutput` | Items: `["Real-time scoring", "Dataset / Extract", "Report", "Dashboard"]`, Default: `Blank()` | _(not stored in v1)_ |
-| 8 | Row 4, Right | `"Refresh Frequency"` | Dropdown `ddRefresh` | Items: `colRefreshFreq`, Default: `selectedUC.RefreshFreq` | `RefreshFreq` ← `Self.Selected.Value` |
-| 9 | Row 5, Left | `"Prerequisite for Other Initiatives"` | Dropdown `ddPrereq` | Items: `["Yes", "No"]`, Default: `Blank()` | _(not stored in v1)_ |
-
-**Caption shared properties (apply to every `lblCap…` above):**
-
-| Property | Value |
-|----------|-------|
-| Height | `16` |
-| Size | `12` |
-| FontWeight | `FontWeight.Semibold` |
-| Color | `gblTheme.Ink2` |
-| Font | `gblTheme.FontFamily` |
-
-For required-field captions (rows marked `*`), wrap the label text in
-the maroon-asterisk pattern or just include the `*` in the text as
-shown — adjust to taste.
-
-**Input shared properties** (apply to every Dropdown / TextInput /
-DatePicker):
+**Status card (code ↔ label).** `Status` stores a *code*
+(`DataPrep`) but must display a *label* (`Data Prep`). Unlock the
+`Status` card, replace its text input with a Dropdown `ddStatus2`,
+then set:
 
 | Property | Value |
 |----------|-------|
-| Height | `36` |
-| Width | `(Parent.Width - 56 - 24) / 2` (or the full-width formula if applicable) |
-| BorderColor | `gblTheme.Border` |
-| BorderThickness | `1` |
-| Color | `gblTheme.Ink` |
-| Size | `13` |
+| `ddStatus2.Items` | `colStatus.Label` |
+| `ddStatus2.Default` | `LookUp(colStatus, Code = Parent.Default, Label)` |
+| `Status` DataCard **Update** | `LookUp(colStatus, Label = ddStatus2.Selected.Value, Code)` |
 
-For each input with a stored field in the OnChange table, the OnChange
-formula template is:
+This shows the label but writes the **code** back on save — the same
+code/label split the old standalone dropdown handled, and what the
+stepper's `LookUp(colStatus, Code = selectedUC.Status, Order)` needs.
 
-```powerfx
-Patch(colUseCases, selectedUC, { <FieldName>: <ValueExpression> });
-Set(selectedUC, LookUp(colUseCases, UCID = selectedUC.UCID))
-```
+**Date & text cards.** `TargetDate` auto-generates a Date picker —
+leave it (its Update is already `DataCardValue.SelectedDate`). `Name`
+and `LOB` stay as the default text inputs.
 
-(The `Set(selectedUC, …)` line keeps `selectedUC` fresh so other
-sections — like the rail head pill and the status stepper — react
-immediately to changes.)
+**Optional v1-only fields (not persisted).** The old form also showed
+*Other LOBs Impacted*, *Output Deliverable*, and *Prerequisite for
+Other Initiatives*, which aren't columns in `colUseCases`. If you want
+them on screen, add each via **Edit fields → Add a custom card**, drop
+in a control, and leave the card **Update** blank — they'll display
+but won't be saved in v1. Otherwise skip them.
+
+**Save / Cancel.** Below the form, inside `conSectionInfo`, add two
+buttons:
+
+| Property | `btnSaveInfo` | `btnCancelInfo` |
+|----------|---------------|------------------|
+| Text | `"Save"` | `"Cancel"` |
+| X | `28` | `btnSaveInfo.X + btnSaveInfo.Width + 12` |
+| Y | `frmInfo.Y + frmInfo.Height + 12` | `btnSaveInfo.Y` |
+| Width | `120` | `120` |
+| Height | `36` | `36` |
+| OnSelect | `SubmitForm(frmInfo)` | `ResetForm(frmInfo)` |
+| Fill | `gblTheme.Maroon` | `gblTheme.Surface` |
+| Color | `White` | `gblTheme.Ink` |
+| DisplayMode | `If(frmInfo.Unsaved, DisplayMode.Edit, DisplayMode.Disabled)` | `DisplayMode.Edit` |
+
+Then select `frmInfo` itself and set:
+
+| Property | Value |
+|----------|-------|
+| OnSuccess | `Set(selectedUC, frmInfo.LastSubmit)` |
+| OnFailure | `Notify("Couldn't save: " & frmInfo.Error, NotificationType.Error)` |
+
+`OnSuccess` refreshes `selectedUC` from the just-saved record, so the
+rail-head pill and the status stepper advance the moment the save
+lands. `btnSaveInfo` stays disabled until there are unsaved edits
+(`frmInfo.Unsaved`); **Cancel** discards them via `ResetForm`.
 
 ### Step 35 — Sanity check
 
@@ -1128,21 +1116,24 @@ From `srcList`, click UC-0142. On Detail with section = Info:
       exactly on the connecting line, and the line begins at the first
       circle's center and ends at the last circle's center.
       The line behind connects them with maroon up to step 3.
-- [ ] Form below: Name, Problem Statement, AI Solution Description
-      (full width), then a 2-column grid of Type, Status, SBU,
-      LOB, Other LOBs, Completion Date, Output, Refresh, Prerequisite.
-- [ ] Editing the Name field and tabbing out updates the rail head's
-      "Name" label and the breadcrumb in the action bar.
-- [ ] Changing the Status dropdown to "Testing" causes the stepper to
-      advance: circle 4 fills maroon, the maroon track extends.
-- [ ] Toggle the rail. Both columns widen/narrow proportionally; no
-      input overflows its column.
+- [ ] Edit form below: Name, Problem Statement, AI Solution
+      Description span full width; Type, Status, SBU, LOB, Completion
+      Date, Refresh sit in a 2-column grid. A **Save** and **Cancel**
+      button sit under the form.
+- [ ] **Save** is greyed out until you change a field; editing any
+      field enables it.
+- [ ] The Status dropdown shows labels (e.g. "Data Prep"), not codes.
+- [ ] Change Status to "Testing" and press **Save**: the stepper
+      advances (circle 4 fills maroon, the track extends) and the rail
+      head pill updates. **Cancel** instead reverts unsaved edits.
+- [ ] Toggle the rail. Both form columns widen/narrow proportionally;
+      no card overflows.
 
-If the stepper circles don't move when you change Status, check
-`lblCurrentStatusIdx.Text` actually returns a number — its formula
-must reference `selectedUC.Status` (the **code**, not the label), and
-the dropdown's OnChange must write the **code** back (via
-`LookUp(colStatus, Label = Self.Selected.Value, Code)`).
+If the stepper doesn't advance after saving, check `frmInfo.OnSuccess`
+is `Set(selectedUC, frmInfo.LastSubmit)` and that the `Status` card's
+**Update** writes the **code** back (`LookUp(colStatus, Label =
+ddStatus2.Selected.Value, Code)`) — `lblCurrentStatusIdx` looks up the
+code, so saving the label would never match.
 
 ---
 
@@ -1538,8 +1529,10 @@ Inside `conValueModalCard`, build:
 1. **Title** `lblModalTitle`: Text=`If(IsBlank(editingValueRow.UCID), "Add value entry", "Edit value entry")`, X=`28`, Y=`24`, Width=`Parent.Width-56`, Size=`16`, FontWeight=`FontWeight.Bold`, Color=`gblTheme.Ink`.
 
 2. **Five fields** (Period, Driver, Amount, Frequency, Signoff). Use
-   the same caption + input pattern as Step 33. Stack them vertically
-   starting at Y=`60` with 64px between rows. Suggested controls:
+   a caption label above each input (caption Size `12`, Semibold,
+   Color `gblTheme.Ink2`; input Height `36`, full card width). Stack
+   them vertically starting at Y=`60` with 64px between rows.
+   Suggested controls:
 
    | Field | Control | Items / Default |
    |-------|---------|-----------------|
@@ -1616,9 +1609,10 @@ following the same patterns as Parts 6–8.
 ### Step 50 — Section: Funds
 
 Container `conSectionFunds` with `Visible: currentSection = "Funds"`,
-title `"Funds"` + underline. Then a 2-column form with 6 fields,
-laid out exactly like Step 34 (caption above input, half-column
-widths, same X/Y math). Fields:
+title `"Funds"` + underline. Then a manual 2-column grid of 6 fields:
+a caption label above each input, half-column width
+`(Parent.Width - 56 - 24) / 2`, left col X `28`, right col X
+`28 + ((Parent.Width - 56 - 24) / 2) + 24`. Fields:
 
 | # | Position | Caption | Control | Items / Default |
 |---|----------|---------|---------|-----------------|
@@ -1800,9 +1794,9 @@ Click any row in `srcList` to land on `srcDetail`. Walk through:
       detail layout). Head shows UCID · FY, name, and a colored
       status pill. Below: 7 section links; "Use Case Info" is
       highlighted on entry.
-- [ ] **Info:** All 12 fields render. Editing Name updates the
-      rail head's name label and the breadcrumb. Changing Status
-      advances the horizontal stepper.
+- [ ] **Info:** the Edit form renders all fields. Changing Status and
+      pressing **Save** updates the rail head's name label, the
+      breadcrumb, and advances the horizontal stepper.
 - [ ] **Contacts:** 6 person cards in a 2×3 grid.
 - [ ] **Value:** 3 summary tiles, header row, 3 value rows. The
       Edit button opens the modal pre-filled. The "+ Add" button
@@ -1834,7 +1828,9 @@ If all 13 boxes pass, `srcDetail` is done. Move on to `srcNew`
 |---------|-------|-----|
 | Screen errors with red squiggles on `selectedUC.Name`, `.UCID`, etc. on first load | `selectedUC` wasn't initialized as a typed record in `App.OnStart` | In `01-app-setup.md` section 2, ensure `selectedUC` is set to a literal record with **all 16 fields**, not `Blank()`. |
 | Stepper circles never highlight | `selectedUC.Status` doesn't match a `Code` in `colStatus` | Status codes must be exactly one of `colStatus.Code`: `Rationale`, `DataPrep`, `Development`, `Testing`, `Deployment`, `Monitoring`, `Decommissioning`. Check `colUseCases` data. |
-| Status dropdown changes don't update the stepper | Dropdown OnChange writes the Label back to `Status` instead of the Code | Use `LookUp(colStatus, Label = Self.Selected.Value, Code)` — see Step 34 row 2. |
+| Status changes don't update the stepper after Save | The `Status` card's **Update** writes the Label back to `Status` instead of the Code | Set the card **Update** to `LookUp(colStatus, Label = ddStatus2.Selected.Value, Code)` — see Step 34, Status card. |
+| Edits don't appear elsewhere after Save | `frmInfo.OnSuccess` doesn't refresh `selectedUC` | Set `OnSuccess = Set(selectedUC, frmInfo.LastSubmit)` — see Step 34. |
+| Save button never enables | Bound to the wrong state | `DisplayMode = If(frmInfo.Unsaved, DisplayMode.Edit, DisplayMode.Disabled)`; it enables only once a card changes. |
 | Sections all visible at once | A section's `Visible` formula is missing or evaluates to true unconditionally | Each `conSection*.Visible` must be `currentSection = "<key>"`. Check Step 27, 36, 40, 50, 51, 52, 53. |
 | Clicking section nav does nothing | Button's `OnSelect` is empty (e.g. when you copied `btnSecInfo` you forgot to retarget OnSelect) | Each button's OnSelect must be `Set(currentSection, "<Key>")` with the row's key — see Step 24 table. |
 | All seven nav rows look "active" (or none do) | The Fill/Color/FontWeight formulas on a copied button still compare against `"Info"` | Update all four formulas on each copy (button Fill, Color, FontWeight, and the accent rectangle's Fill) to compare against the row's own key. |
