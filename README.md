@@ -52,6 +52,21 @@ In Power Apps Studio, create a new blank Tablet-landscape Canvas app, then:
    theming, Dataverse migration). Use this as you build — Studio's formula
    bar is friendlier when you have the formula already written.
 
+## Dataverse migration & layout (v2)
+
+Once the standalone app works, these cover moving `srcList` to live data
+and tuning its layout:
+
+- **`09-dataverse-schema.md`** — the authoritative 3-table Dataverse
+  schema (Business Hierarchy, Projects, Value): fields, types,
+  relationships, choice option sets.
+- **`10-srclist-dataverse-guide.md`** — convert `srcList` from
+  `colUseCases` to the live Dataverse tables (inline filtering, choice
+  columns, lookup-resolved SBU, Realized Value rollup, delegation).
+- **`11-srclist-layout-tuning.md`** — optional layout pass: full-text
+  (wrapped) rows, smaller font, shorter title row / filter card, and a
+  bigger gallery. Supersedes the clip-based row settings in 07/10.
+
 ## Order to ship
 
 - **v1 (now)**: Build against `colUseCases` collections (sample data lives

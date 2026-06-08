@@ -670,6 +670,12 @@ Also set each label's **`Tooltip`** to the same value as its `Text` (e.g.
 `lblName.Tooltip = ThisItem.Name`, `lblSBU.Tooltip = ThisItem.SBU`) so the
 full text shows on hover when a long value is clipped.
 
+> **Prefer to show full text instead of clipping?** Apply
+> [`11-srclist-layout-tuning.md`](11-srclist-layout-tuning.md), which turns
+> `Wrap` back on, raises the row height, shrinks the font, and enlarges the
+> gallery. It supersedes the `Wrap = false` / font / `TemplateSize` values
+> here.
+
 The two wrapper Containers (`conStatusCol` and `conActionCol`) need
 just two properties: `FillPortions` (from the table) and
 `Fill: RGBA(0,0,0,0)`. They exist so the pill and View button can

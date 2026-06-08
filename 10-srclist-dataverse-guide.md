@@ -381,6 +381,11 @@ Update each row label's `Text` (names from [`07` Step 27](07-scrlist-guide.md)):
 > value on hover. The SBU column was also widened to `FillPortions = 180`
 > (Name trimmed to `260`) — keep `lblColSBU` (header) and `lblSBU` (row)
 > equal or they misalign.
+>
+> **Want full text shown (wrapped) instead of clipped?** Apply
+> [`11-srclist-layout-tuning.md`](11-srclist-layout-tuning.md) — it turns
+> wrap on, raises the row height, shrinks the font, and enlarges the
+> gallery, and supersedes the clip-based settings above.
 
 ### Step 9 — Realized Value (`lblValue`)
 
