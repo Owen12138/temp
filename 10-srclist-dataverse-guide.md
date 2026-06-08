@@ -58,21 +58,28 @@ the left and you substitute the **Dataverse display name** on the right:
 | `LastUpdated` | `Modified On` (system column) | DateTime | `ThisItem.'Modified On'` |
 | `Type` | `Type of Use Case` | Choice | `ThisItem.'Type of Use Case'` (no `.Value`) |
 
-> **Choice (option set) columns behave like a lookup record — NOT text,
-> and they have NO `.Value` property.** This trips everyone up:
+> **Choice (option set) columns are an `OptionSetValue`, not text, and
+> have NO `.Value` property.** This trips everyone up. Three rules:
 >
-> - **To display** the label, reference the column **directly**:
->   `ThisItem.'Project Status'` shows "Development". Writing
->   `ThisItem.'Project Status'.Value` **errors** — `.Value` exists only on
->   rows returned by `Choices(...)` and on a dropdown's `.Selected.Value`,
->   not on the column itself.
-> - **You cannot compare a choice column to a text string** (e.g.
->   `'Project Status' = "Development"` → "incompatible types"), and
->   `Text(...)` does **not** convert it. You must compare **choice to
->   choice**: against an option-set member
->   (`'Project Status' = 'Project Status (Projects)'.'Development'`) or
->   against a value pulled from `Choices(...)`. Both patterns are used
->   below (filter → Part 2A, color Switch → Step 11).
+> - **Display:** reference the column **directly** — `ThisItem.'Project
+>   Status'` shows "Development". `ThisItem.'Project Status'.Value`
+>   **errors** (`.Value` exists only on `Choices(...)` rows and on a
+>   dropdown's `.Selected.Value`, never on the column).
+> - **Compare against text** (a string variable, a label): wrap the column
+>   in **`Text(...)`** to coerce it to its label, then compare text-to-text
+>   — `Text('Project Status') = filterStatus`. This is what we use below
+>   because the dropdown stores a label *string*. It is **not delegable**
+>   (a yellow warning), which is fine under ~500 rows.
+> - **Compare delegably** (large tables): compare `OptionSetValue` to
+>   `OptionSetValue` — either an option-set member
+>   (`'Project Status' = 'Project Status (Projects)'.'Development'`) or a
+>   choice picked from a combo box bound to `Choices(...)`
+>   (`'Project Status' = comboStatus.Selected`). **Never** compare the
+>   column to a `Choices(...)` *record* (e.g. `= LookUp(Choices(...), …)`)
+>   — that throws "incompatible types: OptionSetValue and Record".
+>
+> This guide uses the `Text(...)` form (simplest, fine for this data
+> size); the delegable combo-box alternative is noted in Step 3.
 >
 > **Lookup columns return the related row.** `ThisItem.'Business
 > Hierarchy'` is the whole Business Hierarchy record; dot into it for
@@ -127,7 +134,7 @@ filteredUseCases =
             || StartsWith('Use Case ID',   filterSearch)
             || StartsWith('Use Case Name', filterSearch)
             || StartsWith('AI Solution Owner Name', filterSearch))
-        && (filterStatus = "All Statuses" || 'Project Status' = LookUp(Choices(Projects.'Project Status'), Value = filterStatus))
+        && (filterStatus = "All Statuses" || Text('Project Status') = filterStatus)
         && (filterSBU    = "All SBUs"    || 'Business Hierarchy'.'Strategic Business Unit' = filterSBU)
         && (filterFY     = "All FYs"     || 'Project Completion Fiscal Year' = filterFY)
         && (filterOwner  = ""            || 'AI Solution Owner Name' = filterOwner)
@@ -144,16 +151,14 @@ What changed and why:
   contains-anywhere search, use `Search(Projects, filterSearch, "..."
   )` as the data source instead — `Search` delegates and matches
   substrings.)
-- **Status is a choice, so we compare choice-to-choice.** The dropdown
-  still writes a label *string* to `filterStatus` (e.g. "Development"), so
-  `LookUp(Choices(Projects.'Project Status'), Value = filterStatus)`
-  converts that string into the matching choice value, which the column
-  is then compared against. (`'Project Status' = filterStatus` would error
-  — choice vs. text.) The `Choices(...)` lookup resolves once to a single
-  value before the rows are scanned, so the `'Project Status' = …`
-  comparison itself still delegates. *Alternative (cleaner, see Step 3
-  note): bind the dropdown to `Choices(...)` and store the selected choice
-  in `filterStatus` directly, then compare `'Project Status' = filterStatus`.*
+- **Status is a choice, so coerce it with `Text(...)` to compare against
+  the dropdown's label string.** `Text('Project Status')` yields
+  "Development"; comparing that to `filterStatus` (also a string) is a
+  valid text-to-text comparison. Writing `'Project Status' = filterStatus`
+  (OptionSetValue vs. text) or `= LookUp(Choices(...), …)` (OptionSetValue
+  vs. Record) both throw "incompatible types". *`Text()` on a choice is
+  **not delegable** (yellow warning) — fine here; see Step 3 for the
+  delegable combo-box alternative if you ever exceed ~500 projects.*
 - SBU navigates the lookup:
   `'Business Hierarchy'.'Strategic Business Unit' = filterSBU`.
 - The "All …" sentinel short-circuits each clause exactly as before.
@@ -218,29 +223,30 @@ The options must be the **Dataverse Project Status labels** (not the old
 
 `Default` (`filterStatus`) and `OnChange`
 (`Set(filterStatus, Self.Selected.Value)`) stay as they are — the dropdown
-holds plain strings, so `filterStatus` is a label string and the filter
-in Part 2A converts it to a choice via `LookUp(Choices(...))`.
+holds plain strings, so `filterStatus` is a label string, and the Part 2A
+filter coerces the column with `Text('Project Status') = filterStatus`.
 
 > These seven labels must match your Project Status choice **exactly**
 > (see [`09-dataverse-schema.md` §5](09-dataverse-schema.md#5-choice-option-sets)).
 > A mismatch means that status filters to zero rows — copy them verbatim,
 > watching for "Test and Validation" vs. "Testing".
 >
-> **Cleaner alternative (choice-native dropdown).** Instead of the static
-> string array, bind the dropdown straight to the choice and let an empty
-> selection mean "all":
+> **Delegable alternative (choice-native dropdown).** The `Text(...)`
+> filter isn't delegable. If you outgrow ~500 projects, switch to comparing
+> `OptionSetValue` to `OptionSetValue` so the filter runs server-side:
 > - `ddStatus.Items` = `Choices(Projects.'Project Status')`
 > - `ddStatus.AllowEmptySelection` = `true` (the cleared state = "All")
 > - `ddStatus.OnChange` = `Set(filterStatus, Self.Selected)`  *(stores the
->   choice value, not a string)*
+>   choice value itself, not a string)*
 > - `App.OnStart`: `Set(filterStatus, Blank())` instead of `"All Statuses"`
 > - `btnReset.OnSelect`: `Set(filterStatus, Blank()); Reset(ddStatus)`
 > - Part 2A clause becomes: `(IsBlank(filterStatus) || 'Project Status' = filterStatus)`
+>   — note this compares the column to a stored **choice**, never to a
+>   `Choices(...)` record (which would throw "incompatible types").
 >
-> This avoids the `LookUp(Choices(...))` conversion and the label-typo
-> risk entirely, at the cost of losing the explicit "All Statuses" row
-> (you clear the dropdown instead). Pick one approach and keep `Part 2A`,
-> `Step 3`, `OnStart`, and `Reset` consistent with it.
+> Trade-off: you lose the explicit "All Statuses" row (clearing the
+> dropdown means "all"). Pick one approach and keep `Part 2A`, `Step 3`,
+> `OnStart`, and `Reset` consistent with it.
 
 ### Step 4 — SBU dropdown (`ddSBU`)
 
@@ -366,34 +372,28 @@ With({d: DateDiff(ThisItem.'Modified On', Today())},
 
 ### Step 11 — Status pill color (`circStatusDot.Fill`)
 
-The old Switch matched the status **text**. A choice column can't be
-matched against text, so switch on `true` and compare the column to each
-**option-set member** instead. Replace the formula with:
+This is a per-row expression (delegation doesn't apply inside a gallery
+row), so the simplest correct form is to coerce the choice with `Text(...)`
+and switch on the label string:
 
 ```powerfx
-Switch(true,
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Rationale for AI Solutions', RGBA(110,110,110,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Data Preparation',           RGBA(110,110,110,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Development',                RGBA(31,111,178,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Test and Validation',        RGBA(197,139,26,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Deployment',                 RGBA(45,125,63,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Monitoring and Review',      RGBA(74,124,140,1),
-    ThisItem.'Project Status' = 'Project Status (Projects)'.'Decommissioning',            RGBA(176,176,176,1),
+Switch(Text(ThisItem.'Project Status'),
+    "Rationale for AI Solutions", RGBA(110,110,110,1),
+    "Data Preparation",           RGBA(110,110,110,1),
+    "Development",                RGBA(31,111,178,1),
+    "Test and Validation",        RGBA(197,139,26,1),
+    "Deployment",                 RGBA(45,125,63,1),
+    "Monitoring and Review",      RGBA(74,124,140,1),
+    "Decommissioning",            RGBA(176,176,176,1),
     RGBA(110,110,110,1)
 )
 ```
 
-> **Get the enumeration name from IntelliSense — don't hand-type it.**
-> `'Project Status (Projects)'` is the *option-set name* Power Apps
-> generates for a local choice; yours may differ (a global choice shows
-> just `'Choice Name'`). In the formula bar type
-> `ThisItem.'Project Status' = ` and Studio drops down the available
-> options — pick one and it inserts the exact, correctly-quoted reference.
-> Type the first comparison that way, then copy its prefix for the rest.
-
-(Same colors as before — only the comparison form changed. See the
-status mapping in
-[`09-dataverse-schema.md` §4](09-dataverse-schema.md#4-mapping-to-app-collections).)
+> The `Text(...)` wrap is what makes this work — `Switch` on the bare
+> choice column would compare `OptionSetValue` to the string literals and
+> error. The match strings must equal your choice labels exactly. (Same
+> colors as before; see the status mapping in
+> [`09-dataverse-schema.md` §4](09-dataverse-schema.md#4-mapping-to-app-collections).)
 
 ### Step 12 — Status pill text (`lblStatusText.Text`)
 
@@ -522,12 +522,13 @@ data) — but only after `srcDetail`/`srcNew` no longer reference
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Gallery is empty after rebind | `filteredUseCases` still references `colUseCases`, or the Status clause compares the choice to text | Repaste Part 2A. The Status clause must convert via `'Project Status' = LookUp(Choices(Projects.'Project Status'), Value = filterStatus)` (or, in the choice-native design, `'Project Status' = filterStatus` where `filterStatus` holds a choice). |
+| Gallery is empty after rebind | `filteredUseCases` still references `colUseCases`, or the Status clause is malformed | Repaste Part 2A. The Status clause is `Text('Project Status') = filterStatus` (or, in the delegable design, `'Project Status' = filterStatus` where `filterStatus` holds a **choice** from `Choices()`). |
 | `'...'.Value` / `'Project Status'.Value` errors with "name isn't valid" | A choice column has no `.Value` property — that's only on `Choices()` rows and `Dropdown.Selected.Value` | Drop `.Value`. Display: `ThisItem.'Project Status'`. Compare: choice-to-choice (Part 2A / Step 11). |
-| "Incompatible types" comparing status | Comparing the choice column to a text string (`= "Development"` or `= filterStatus`) | Compare to an option-set member (`'Project Status (Projects)'.'Development'`, Step 11) or to a `Choices()`/`Selected` choice value. `Text()` does **not** fix this. |
+| "Incompatible types: OptionSetValue and Text" | Comparing the choice column directly to a string (`'Project Status' = "Development"` or `= filterStatus`) | Wrap the column: `Text('Project Status') = filterStatus`. |
+| "Incompatible types: OptionSetValue and Record" | Comparing the column to a `Choices(...)` / `LookUp(Choices(...))` **record** | Don't compare to a record. Use `Text('Project Status') = <string>`, or in the delegable design compare to `ddStatus.Selected` (a choice) — never `.Selected.Value`. |
 | SBU column blank for every row | Lookup column not navigated, or the related Business Hierarchy row isn't set on the project | Use `ThisItem.'Business Hierarchy'.'Strategic Business Unit'`. If still blank, the project's lookup is empty in Dataverse. |
 | `'Business Hierarchy'` not recognized | The lookup column has a different display name | Type `ThisItem.` in the formula bar and pick the actual lookup column from the suggestion list; use that quoted name. |
-| Status pill always gray | Switch still keys off old codes (`"DataPrep"`), or compares the choice to text so no branch matches | Use Step 11's `Switch(true, ThisItem.'Project Status' = 'Project Status (Projects)'.'<option>', …)`. Let IntelliSense insert the option-set reference. |
+| Status pill always gray | Switch still keys off old codes (`"DataPrep"`), or the column isn't wrapped in `Text()` so no branch matches | Use Step 11's `Switch(Text(ThisItem.'Project Status'), "<label>", …)` with the exact Dataverse labels. |
 | Status filter returns zero rows | A label in `ddStatus.Items` doesn't match the Dataverse choice exactly | Copy labels verbatim from the choice definition (§5 of the schema doc). Watch for "Test and Validation" vs "Testing". |
 | Realized Value always "—" | Rollup column hasn't recalculated yet, or Option B relationship name is wrong | Trigger the rollup (or wait for its schedule). For Option B, confirm the relationship name after `ThisItem.` (often plural, e.g. `Values`). |
 | Blue underline on `galUseCases.Items` | `in` operator or non-delegable function in `filteredUseCases` | Use `StartsWith`/`Search` (Part 2A). Raise the row limit to 2000 as a stopgap. |
