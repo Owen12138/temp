@@ -505,8 +505,8 @@ to reorder.
 | # | Name | Text | FillPortions |
 |---|------|------|--------------|
 | 1 | `lblColUCID` | `"UCID"` | `100` |
-| 2 | `lblColName` | `"Use Case Name"` | `320` |
-| 3 | `lblColSBU` | `"SBU"` | `120` |
+| 2 | `lblColName` | `"Use Case Name"` | `260` |
+| 3 | `lblColSBU` | `"SBU"` | `180` |
 | 4 | `lblColOwner` | `"AI Solution Owner"` | `160` |
 | 5 | `lblColStatus` | `"Status"` | `150` |
 | 6 | `lblColFY` | `"FY"` | `60` |
@@ -636,8 +636,8 @@ labels) — they're empty wrappers that get filled in Steps 28 and 29.
 | # | Control type | Name | Text | FillPortions | Size | Color | FontWeight |
 |---|--------------|------|------|--------------|------|-------|-----------|
 | 1 | Label | `lblUCID` | `ThisItem.UCID` | `100` | 12 | `gblTheme.Ink3` | `FontWeight.Normal` |
-| 2 | Label | `lblName` | `ThisItem.Name` | `320` | 13 | `gblTheme.Ink` | `FontWeight.Semibold` |
-| 3 | Label | `lblSBU` | `ThisItem.SBU` | `120` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
+| 2 | Label | `lblName` | `ThisItem.Name` | `260` | 13 | `gblTheme.Ink` | `FontWeight.Semibold` |
+| 3 | Label | `lblSBU` | `ThisItem.SBU` | `180` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
 | 4 | Label | `lblOwner` | `ThisItem.Owner` | `160` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
 | 5 | Container (classic) | `conStatusCol` | — | `150` | — | — | — |
 | 6 | Label | `lblFY` | `ThisItem.FY` | `60` | 13 | `gblTheme.Ink2` | `FontWeight.Normal` |
@@ -953,7 +953,7 @@ in `02-build-guide.md`).
 | Gallery shows no rows | `filteredUseCases` is empty, or filters too restrictive | Click `App` in the tree, check `Formulas` contains the `filteredUseCases =` block from `01-app-setup.md` section 3. Reset filters. |
 | Gallery shows red squiggle on Items | `filteredUseCases` isn't defined as a named formula | Same as above — paste the block into `App.Formulas` (not `App.OnStart`). |
 | Columns don't reflow when rail toggles | A child of `conGalleryHeader` or `conRow` has an explicit `Width` (or `X`) instead of `FillPortions` | Open the control and clear `Width` (it should be auto, with `FillPortions` driving sizing). Same for `X` — Horizontal Container children shouldn't have X set. |
-| Header columns don't line up with row columns | A row column's `FillPortions` doesn't match its header column | Compare Step 23 and Step 27 — column N's FillPortions must be the same integer in both tables (e.g. SBU is `120` in both). |
+| Header columns don't line up with row columns | A row column's `FillPortions` doesn't match its header column | Compare Step 23 and Step 27 — column N's FillPortions must be the same integer in both tables (e.g. SBU is `180` in both). |
 | Row columns appear in the wrong order | Tree order inside `conRow` doesn't match column 1→9 | In the tree, drag children of `conRow` so they appear top-to-bottom in the desired left-to-right order. Same for `conGalleryHeader`. |
 | Status text overflows the Status column | `lblStatusText.Width` is fixed instead of `Parent.Width - Self.X` | Width should reference Parent so it scales with `conStatusCol` when the rail toggles. |
 | View button stretches the whole Action column | Button was inserted directly inside `conRow` instead of inside `conActionCol` | Cut the button from `conRow`, paste it inside `conActionCol`. |

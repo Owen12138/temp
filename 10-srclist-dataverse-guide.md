@@ -190,6 +190,27 @@ you set its `Items` (where noted) and its `Default`, and — because we
 filter inline — you **delete the `OnChange` handler** (the old
 `Set(filterX, …)`). The gallery in Step 7b reads each control directly.
 
+### Step 2b — Build the dropdown option lists (`srcList.OnVisible`)
+
+The SBU, FY, and Owner dropdowns each need an `"All …"` row prepended to a
+`Distinct(...)` list. Build all three **once** on screen load — not in
+`App.OnStart` (which would run three queries at launch and slow the app
+opening). Select `srcList` in the tree and set its **`OnVisible`**:
+
+```powerfx
+If(IsEmpty(colSBUOptions),
+    ClearCollect(colSBUOptions,   "All SBUs");   Collect(colSBUOptions,   Distinct('Business Hierarchy', 'Strategic Business Unit').Value);
+    ClearCollect(colFYOptions,    "All FYs");     Collect(colFYOptions,    Distinct(Projects, 'Project Completion Fiscal Year').Value);
+    ClearCollect(colOwnerOptions, "All Owners");  Collect(colOwnerOptions, Distinct(Projects, 'AI Solution Owner Name').Value)
+)
+```
+
+The `If(IsEmpty(colSBUOptions), …)` guard means this runs only the first
+time the screen is shown, not on every navigation back. (`ClearCollect`
+with a scalar makes a single `Value` column; `Collect` of
+`Distinct(...).Value` appends the rest as `Value` rows.) Steps 4–6 just
+point each dropdown at the matching collection.
+
 ### Step 3 — Status dropdown (`ddStatus`)
 
 The options must be the **Dataverse Project Status labels** (not the old
@@ -221,71 +242,42 @@ The gallery filter (Step 7b) reads `ddStatus.Selected.Value` directly.
 
 ### Step 4 — SBU dropdown (`ddSBU`)
 
-SBUs now come from the Business Hierarchy table. You can't simply prepend
-`"All SBUs"` to a `Distinct(...)` result inline — `&` is string
-concatenation in Power Fx and does **not** combine tables, so
-`["All SBUs"] & Distinct(...)` errors. Use one of these two patterns:
-
-**Pattern A (recommended) — build the option list once in `App.OnStart`.**
-Add to the bottom of `App.OnStart`:
-
-```powerfx
-ClearCollect(colSBUOptions, "All SBUs");
-Collect(colSBUOptions, Distinct('Business Hierarchy', 'Strategic Business Unit').Value);
-```
-
-`ClearCollect` with a scalar makes a single `Value` column; `Collect` of
-`Distinct(...).Value` (a single-column table of scalars) appends the rest
-as `Value` rows. Then set the dropdown:
+The SBU options were built in Step 2b (`colSBUOptions` = `"All SBUs"` + the
+distinct Strategic Business Units from Business Hierarchy — you can't
+prepend `"All SBUs"` to a `Distinct(...)` inline because `&` doesn't
+combine tables). Set:
 
 | Property | Value |
 |---|---|
 | Items | `colSBUOptions` |
+| Default | `"All SBUs"` |
+| OnChange | *(delete it — leave blank)* |
 
-**Pattern B (simplest) — keep a static array** if your SBU set is stable:
-
-| Property | Value |
-|---|---|
-| Items | `["All SBUs","PBB","Capital Markets","Wealth","Commercial","Direct Banking"]` |
-
-Either way, set `Default` = `"All SBUs"` and **delete the `OnChange`**.
 The gallery reads `ddSBU.Selected.Value` directly.
 
-> `Distinct` on Dataverse may show a delegation warning. SBU lists are
-> small (one row per valid SBU/LOB combo), so the result is well under the
-> 500-row limit and complete in practice. Building it once in `OnStart`
-> (Pattern A) also avoids re-querying on every screen render.
+> Prefer a fixed list instead? You can hard-code
+> `["All SBUs","PBB","Capital Markets","Wealth","Commercial","Direct Banking"]`
+> and skip `colSBUOptions` — but the Step 2b collection stays in sync with
+> the data automatically.
 
 ### Step 5 — FY dropdown (`ddFY`)
 
-Same prepend constraint as SBU. Either keep the fixed array (simplest):
+Use the `colFYOptions` list from Step 2b:
 
 | Property | Value |
 |---|---|
-| Items | `["All FYs","F26","F25","F24"]` |
+| Items | `colFYOptions` |
+| Default | `"All FYs"` |
+| OnChange | *(delete it — leave blank)* |
 
-…or build it in `App.OnStart` from the data (Pattern A style):
-
-```powerfx
-ClearCollect(colFYOptions, "All FYs");
-Collect(colFYOptions, Distinct(Projects, 'Project Completion Fiscal Year').Value);
-```
-
-then set `ddFY.Items = colFYOptions`. Set `Default` = `"All FYs"` and
-**delete the `OnChange`**. The gallery reads `ddFY.Selected.Value`.
+The gallery reads `ddFY.Selected.Value`. (A fixed
+`["All FYs","F26","F25","F24"]` array works too if your FY labels never
+change.)
 
 ### Step 6 — Owner dropdown (`ddOwner`)
 
-For consistency with the other dropdowns, give Owner an explicit
-`"All Owners"` row. You can't prepend it to `Distinct(...)` inline, so
-build the list in `App.OnStart` (same Pattern A as SBU/FY):
-
-```powerfx
-ClearCollect(colOwnerOptions, "All Owners");
-Collect(colOwnerOptions, Distinct(Projects, 'AI Solution Owner Name').Value);
-```
-
-Then set:
+Use the `colOwnerOptions` list from Step 2b (`"All Owners"` + distinct
+owner names), for consistency with the other dropdowns:
 
 | Property | Value |
 |---|---|
@@ -343,6 +335,20 @@ How it works:
 - The `"All …"` sentinels (and `IsBlank` for the search box) short-circuit
   each clause when no filter is set.
 
+> **Loading model — scrolling, not pagination.** Keep the gallery's native
+> vertical scroll (`galUseCases` from
+> [`07` Step 25](07-scrlist-guide.md)); we are **not** building pagination.
+> A Dataverse gallery loads the first page and lazy-loads more as you
+> scroll — it does not pull the whole table up front. The one exception is
+> the non-delegable Status `Text(...)` clause: when active, Power Apps
+> pulls up to the *data-row-limit* and filters locally. At 100–500 rows
+> that's the whole (small) table loaded once and then cached — ideal for
+> scrolling, and the reason pagination would only add round-trips here.
+>
+> Set **Settings → General → Data row limit for non-delegable queries →
+> `2000`** as headroom, so growth past 500 rows doesn't silently truncate
+> the list.
+
 ### Step 7c — Reset button (`btnReset`)
 
 With no variables, Reset just clears the controls back to their defaults:
@@ -365,6 +371,14 @@ Update each row label's `Text` (names from [`07` Step 27](07-scrlist-guide.md)):
 | `lblSBU` | `ThisItem.SBU` | `ThisItem.'Business Hierarchy'.'Strategic Business Unit'` |
 | `lblOwner` | `ThisItem.Owner` | `ThisItem.'AI Solution Owner Name'` |
 | `lblFY` | `ThisItem.FY` | `ThisItem.'Project Completion Fiscal Year'` |
+
+> **SBU column width.** Lookup-resolved SBU names are wider than the old
+> codes and clip in the default column. The column was widened to
+> `FillPortions = 180` (trimming Use Case Name to `260`) in
+> [`07` Steps 23 & 27](07-scrlist-guide.md) — make sure both `lblColSBU`
+> (header) and `lblSBU` (row) use the **same** value or they'll misalign.
+> If your longest SBU still clips, bump SBU up and Name down by the same
+> amount (they're proportional).
 
 ### Step 9 — Realized Value (`lblValue`)
 
