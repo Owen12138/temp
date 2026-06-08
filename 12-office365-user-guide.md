@@ -41,73 +41,166 @@ What to know in a corporate tenant:
 
 ## Part 2 — Replace `currentUser` in `App.OnStart`
 
-Open `App` → **OnStart**. Replace the sample line
+### Why this needs real thought
+
+In a real corporate directory the name fields are messy:
+
+- **`displayName` is not always "First Last".** Banks and large enterprises
+  very often set it to **"Surname, Given"** (e.g. `"Huang, Owen"`), or add
+  suffixes (`"Owen Huang (Contractor)"`, `"Owen Huang | Capital Markets"`).
+  Parsing first-word/last-word off that gives the *wrong* first name and
+  *reversed* initials.
+- **`givenName` / `surname` are the authoritative, order-independent
+  fields** — when populated, always prefer them. But for service accounts,
+  some guests, and older AD records they can be **blank**.
+- **Single-token names** ("Cher", "Madonna") must not produce doubled
+  initials ("CC").
+
+So the logic is: **prefer `givenName` + `surname`; fall back to parsing
+`displayName`, detecting the "Surname, Given" comma format; and never
+double a single token.** Compute it once in `OnStart` into a rich
+`currentUser` record.
+
+### The OnStart block
+
+Open `App` → **OnStart** and replace the sample line
+`Set(currentUser, { FullName: "Owen Huang", Initials: "OH" });` with:
 
 ```powerfx
-// OLD: Set(currentUser, { FullName: "Owen Huang", Initials: "OH" });
-```
-
-with a single profile fetch cached into a variable, then a friendly
-`currentUser` shape (so every control that already reads
-`currentUser.FullName` / `.Initials` keeps working):
-
-```powerfx
-// One network call — cache it
+// One network call — cache the raw profile
 Set(gblMe, Office365Users.MyProfileV2());
 
-Set(currentUser,
+With(
     {
-        FullName: Coalesce(gblMe.displayName, gblMe.userPrincipalName, "User"),
-        Email:    Coalesce(gblMe.mail, gblMe.userPrincipalName, ""),
-        JobTitle: Coalesce(gblMe.jobTitle, ""),
-        Initials:
-            Upper(
-                With({ parts: Split(Coalesce(gblMe.displayName, "U"), " ") },
-                    Left(First(parts).Value, 1) &
-                    If(CountRows(parts) > 1, Left(Last(parts).Value, 1), "")
-                )
-            )
-    }
+        _gn: Trim(Coalesce(gblMe.givenName, "")),                          // given name (may be blank)
+        _sn: Trim(Coalesce(gblMe.surname,  "")),                           // surname    (may be blank)
+        _dn: Trim(Coalesce(gblMe.displayName, gblMe.userPrincipalName, "User")),
+        _comma: !IsBlank(Find(",", Coalesce(gblMe.displayName, "")))       // "Surname, Given" format?
+    },
+    With(
+        {
+            // First name: prefer givenName; else parse displayName
+            //   - comma format  -> text AFTER the comma
+            //   - normal format -> first word
+            _first: If(!IsBlank(_gn),
+                       _gn,
+                       If(_comma, Trim(Last (Split(_dn, ",")).Value),
+                                  Trim(First(Split(_dn, " ")).Value))),
+            // Last name: prefer surname; else parse displayName
+            //   - comma format  -> text BEFORE the comma
+            //   - normal format -> last word
+            _last:  If(!IsBlank(_sn),
+                       _sn,
+                       If(_comma, Trim(First(Split(_dn, ",")).Value),
+                                  Trim(Last (Split(_dn, " ")).Value)))
+        },
+        Set(currentUser,
+            {
+                FirstName: _first,
+                LastName:  _last,
+                // Natural-order full name even if the directory stored "Surname, Given"
+                FullName:  If(_comma, Trim(_first & " " & _last), _dn),
+                Email:     Coalesce(gblMe.mail, gblMe.userPrincipalName, ""),
+                JobTitle:  Coalesce(gblMe.jobTitle, ""),
+                // First + last initial; single-token names get just one
+                Initials:  Upper(Left(_first, 1) & If(_last = _first, "", Left(_last, 1)))
+            }
+        )
+    )
 );
 ```
 
+### How it resolves, case by case
+
+| `givenName` / `surname` | `displayName` | → FirstName / LastName | → Initials |
+|---|---|---|---|
+| `Owen` / `Huang` | anything | Owen / Huang | **OH** |
+| *(blank)* / *(blank)* | `Owen Huang` | Owen / Huang | **OH** |
+| *(blank)* / *(blank)* | `Huang, Owen` | Owen / Huang | **OH** |
+| *(blank)* / *(blank)* | `Owen Michael Huang` | Owen / Huang | **OH** |
+| *(blank)* / *(blank)* | `Cher` | Cher / Cher | **C** |
+| *(blank)* / *(blank)* | *(blank)* → UPN `owen.h@cibc.com` | owen.h@cibc.com / … | first letter(s) |
+
 Notes:
 
-- **`MyProfileV2()` field names are camelCase** (`displayName`,
-  `givenName`, `surname`, `mail`, `jobTitle`, `userPrincipalName`, `id`).
-  The older `MyProfile()` uses PascalCase (`DisplayName`) — pick one and be
-  consistent. V2 is recommended.
-- **`Coalesce(...)`** falls back when a field is blank (common for guests):
-  display name → UPN → "User".
-- **Initials** are derived from the display name's first + last word, so
-  you don't depend on `givenName`/`surname` being populated.
+- **`MyProfileV2()` fields are camelCase** (`displayName`, `givenName`,
+  `surname`, `mail`, `jobTitle`, `userPrincipalName`, `id`). The older
+  `MyProfile()` is PascalCase (`DisplayName`) — don't mix them. Prefer V2.
+- **`Coalesce`** chains fallbacks (blank → next), so guests with sparse
+  profiles still get a name from the UPN.
+- The remaining ugly edge is a **suffix** in `displayName`
+  (`"Owen Huang (Contractor)"`) when `givenName`/`surname` are *also*
+  blank — last word becomes `(Contractor)`. It's rare (those fields are
+  usually populated); if your tenant has it, strip the suffix with
+  `Substitute`/`Left(... Find("(", ...))` before splitting.
 
 > **Call it once.** `MyProfileV2()` is a network round-trip — fetch it in
-> `OnStart` and read `gblMe` / `currentUser` everywhere else. Never put
-> `Office365Users.MyProfileV2()` directly on a control property (it would
-> re-call on every render).
+> `OnStart`, then read `gblMe` / `currentUser` everywhere. Never put
+> `Office365Users.MyProfileV2()` on a control property (it would re-call on
+> every render). If you'd rather not slow app launch, move this block to
+> `srcHome.OnVisible` behind an `If(IsBlank(currentUser.FullName), …)`
+> guard.
 
 ---
 
 ## Part 3 — Profile photo (with a safe fallback)
 
-Photos live in Exchange Online and **many corporate users haven't set
-one**, so the call can error or return blank — always guard it.
+### Why this needs thought too
 
-Add to `App.OnStart` (right after the `Set(currentUser, …)` block):
+Photos live in Exchange Online and behave inconsistently across tenants:
+
+- **Most corporate users have no photo set** — so this is the common path,
+  not the edge case. The fallback (initials bubble) must be solid.
+- **Two different failure modes:** depending on connector version and
+  tenant, `UserPhotoV2` either **throws an error** *or* **returns blank /
+  an empty image** when there's no photo. A guard that only catches the
+  error will let a blank image through and you'll get an empty avatar
+  covering your initials.
+
+So we guard for **both**: wrap in `IfError`, *and* set the "has photo" flag
+from whether the returned image is actually non-blank.
+
+### The OnStart block
+
+Add right after the `Set(currentUser, …)` block:
 
 ```powerfx
-Set(gblHasPhoto, false);
 IfError(
-    Set(gblUserPhoto, Office365Users.UserPhotoV2(gblMe.id)); Set(gblHasPhoto, true),
+    With({ _photo: Office365Users.UserPhotoV2(gblMe.id) },
+        Set(gblUserPhoto, _photo);
+        Set(gblHasPhoto, !IsBlank(_photo))      // false if the call returned an empty image
+    ),
+    // call errored (no photo / not permitted)
+    Set(gblUserPhoto, Blank());
     Set(gblHasPhoto, false)
 );
 ```
 
-- `UserPhotoV2(gblMe.id)` returns the signed-in user's photo. On any
-  error (no photo / not permitted), `gblHasPhoto` stays `false`.
-- We'll show the photo when `gblHasPhoto` is true, and fall back to the
-  initials circle otherwise (Part 4).
+- `gblHasPhoto` is **true only when the call succeeded *and* gave a real
+  image** — covers both the error path and the blank-return path.
+- The avatar in Part 4 shows `gblUserPhoto` when `gblHasPhoto`, else the
+  initials bubble.
+
+### Make the photo a circle that fills cleanly
+
+On the `imgUserAv` Image control (Part 4), besides the radius:
+
+- **`ImagePosition = ImagePosition.Fill`** so a rectangular headshot crops
+  to fill the round avatar instead of letterboxing with gaps.
+- Round it with `RadiusTopLeft/TopRight/BottomLeft/BottomRight = Self.Width / 2`.
+
+> **More precise existence check (optional).** Instead of relying on the
+> downloaded image being non-blank, you can ask for **metadata** first:
+> `Office365Users.UserPhotoMetadata(gblMe.id)` returns size info and errors
+> when no photo exists. Wrapping *that* in `IfError` lets you set
+> `gblHasPhoto` without downloading the image, then fetch `UserPhotoV2`
+> only when it exists. Overkill for one current-user avatar; useful if you
+> ever show photos for many people in a gallery.
+
+> **Performance / galleries.** `UserPhotoV2` is a per-user network call.
+> One call for the signed-in user (cached in `gblUserPhoto`) is fine. Never
+> call it row-by-row in a gallery — bind the gallery's avatar to a
+> pre-built collection or accept initials-only there.
 
 ---
 
@@ -116,10 +209,12 @@ IfError(
 In `conHeader` you already have `circUserAv` + `lblUserInit` + `lblWelcome`.
 Update their text/data and add one image on top:
 
-**`lblWelcome.Text`** — greet by first name from the live profile:
+**`lblWelcome.Text`** — greet by first name. Use the `FirstName` we already
+computed in Part 2 (correct even for "Surname, Given" directories — don't
+re-parse `FullName` here):
 
 ```powerfx
-"Welcome, " & First(Split(currentUser.FullName, " ")).Value
+"Welcome, " & currentUser.FirstName
 ```
 
 **`lblUserInit.Text`** — already `currentUser.Initials`; no change needed
@@ -134,6 +229,7 @@ Update their text/data and add one image on top:
 | Image | `gblUserPhoto` |
 | Visible | `gblHasPhoto` |
 | X / Y / Width / Height | same as `circUserAv` (see Part 5) |
+| ImagePosition | `ImagePosition.Fill` (crop-to-fill, no letterboxing) |
 | RadiusTopLeft / TopRight / BottomLeft / BottomRight | `Self.Width / 2` (round it) |
 
 Set the fallback to hide when a photo exists:
