@@ -65,11 +65,12 @@ the left and you substitute the **Dataverse display name** on the right:
 >   Status'` shows "Development". `ThisItem.'Project Status'.Value`
 >   **errors** (`.Value` exists only on `Choices(...)` rows and on a
 >   dropdown's `.Selected.Value`, never on the column).
-> - **Compare against text** (a string variable, a label): wrap the column
->   in **`Text(...)`** to coerce it to its label, then compare text-to-text
->   — `Text('Project Status') = filterStatus`. This is what we use below
->   because the dropdown stores a label *string*. It is **not delegable**
->   (a yellow warning), which is fine under ~500 rows.
+> - **Compare against text** (a dropdown selection, a label): wrap the
+>   column in **`Text(...)`** to coerce it to its label, then compare
+>   text-to-text — `Text('Project Status') = ddStatus.Selected.Value`.
+>   This is what the inline gallery filter uses (Step 7b) because the
+>   dropdown holds label *strings*. It is **not delegable** (a yellow
+>   warning), which is fine under ~500 rows.
 > - **Compare delegably** (large tables): compare `OptionSetValue` to
 >   `OptionSetValue` — either an option-set member
 >   (`'Project Status' = 'Project Status (Projects)'.'Development'`) or a
@@ -112,59 +113,34 @@ label when satisfied.
 
 ---
 
-## Part 2 — Rewrite App.OnStart and App.Formulas
+## Part 2 — App.OnStart and inline filtering
 
-The filter card writes to the same variables (`filterSearch`,
-`filterStatus`, …) — those don't change. What changes is the
-**`filteredUseCases` named formula** (it now queries Dataverse, must be
-delegation-safe, and must compare the Status choice column to a choice
-value, not text), and the
-**typed-blank `selectedUC`** seed.
+We're using **inline filtering**: the gallery's `Items` property holds the
+whole `Filter(...)` expression and reads the filter controls (`txtSearch`,
+`ddStatus`, …) **directly**. There is **no `filteredUseCases` named
+formula** and **no `filterSearch`/`filterStatus`/… variables**. The
+gallery recomputes automatically whenever a control changes, which keeps
+all the filter logic in one place and removes the `OnChange`/`Set`
+plumbing (and a class of state-drift bugs that comes with it).
 
-### Part 2A — Replace the `filteredUseCases` named formula
+So `App.OnStart` only needs to seed the typed-blank `selectedUC` and UI
+state (`currentSection`, `sideCollapsed`) — **not** filter state.
 
-Click `App` in the tree → **Formulas**. Replace the existing
-`filteredUseCases = Filter(colUseCases, …)` block with:
+### Part 2A — Remove the old filter plumbing
 
-```powerfx
-filteredUseCases =
-    Filter(
-        Projects,
-        (filterSearch = ""
-            || StartsWith('Use Case ID',   filterSearch)
-            || StartsWith('Use Case Name', filterSearch)
-            || StartsWith('AI Solution Owner Name', filterSearch))
-        && (filterStatus = "All Statuses" || Text('Project Status') = filterStatus)
-        && (filterSBU    = "All SBUs"    || 'Business Hierarchy'.'Strategic Business Unit' = filterSBU)
-        && (filterFY     = "All FYs"     || 'Project Completion Fiscal Year' = filterFY)
-        && (filterOwner  = ""            || 'AI Solution Owner Name' = filterOwner)
-    );
-```
+If you built `srcList` from [`07-scrlist-guide.md`](07-scrlist-guide.md),
+strip out the collection-era filter wiring (the inline `Filter` in Step
+7b replaces all of it):
 
-What changed and why:
-
-- `colUseCases` → `Projects`.
-- **Search uses `StartsWith`, not `in`.** The `in` operator does **not
-  delegate** to Dataverse — on a large table it would silently cap at 500
-  rows and miss matches. `StartsWith` delegates. (Trade-off: it matches
-  from the start of the field, not mid-string. If you need
-  contains-anywhere search, use `Search(Projects, filterSearch, "..."
-  )` as the data source instead — `Search` delegates and matches
-  substrings.)
-- **Status is a choice, so coerce it with `Text(...)` to compare against
-  the dropdown's label string.** `Text('Project Status')` yields
-  "Development"; comparing that to `filterStatus` (also a string) is a
-  valid text-to-text comparison. Writing `'Project Status' = filterStatus`
-  (OptionSetValue vs. text) or `= LookUp(Choices(...), …)` (OptionSetValue
-  vs. Record) both throw "incompatible types". *`Text()` on a choice is
-  **not delegable** (yellow warning) — fine here; see Step 3 for the
-  delegable combo-box alternative if you ever exceed ~500 projects.*
-- SBU navigates the lookup:
-  `'Business Hierarchy'.'Strategic Business Unit' = filterSBU`.
-- The "All …" sentinel short-circuits each clause exactly as before.
-
-> If a column display name has **no spaces** (rare here) you can drop the
-> quotes. When in doubt, keep the single quotes — they're always valid.
+- **`App.Formulas`:** delete the entire
+  `filteredUseCases = Filter(colUseCases, …)` named formula.
+- **`App.OnStart`:** delete the filter-state seeds —
+  `Set(filterSearch, "")`, `Set(filterStatus, "All Statuses")`,
+  `Set(filterSBU, "All SBUs")`, `Set(filterFY, "All FYs")`,
+  `Set(filterOwner, "")`. **Keep** `Set(currentSection, …)` and
+  `Set(sideCollapsed, …)`.
+- The dropdowns' `OnChange` handlers (`Set(filterX, …)`) are removed in
+  Part 3; the Reset button is simplified in Step 7c.
 
 ### Part 2B — Re-seed `selectedUC` as a Dataverse-shaped blank
 
@@ -207,46 +183,41 @@ chose B, substitute the `Sum(...)` expression there.
 
 ---
 
-## Part 3 — Rewire the filter dropdowns
+## Part 3 — Set up the filter controls
 
-Open `srcList`. The captions and layout don't change — only the `Items`
-of each dropdown (and one search note).
+Open `srcList`. The captions and layout don't change. For each control
+you set its `Items` (where noted) and its `Default`, and — because we
+filter inline — you **delete the `OnChange` handler** (the old
+`Set(filterX, …)`). The gallery in Step 7b reads each control directly.
 
 ### Step 3 — Status dropdown (`ddStatus`)
 
 The options must be the **Dataverse Project Status labels** (not the old
-`colStatus` codes). Set:
+`colStatus` codes):
 
 | Property | Value |
 |---|---|
 | Items | `["All Statuses","Rationale for AI Solutions","Data Preparation","Development","Test and Validation","Deployment","Monitoring and Review","Decommissioning"]` |
+| Default | `"All Statuses"` |
+| OnChange | *(delete it — leave blank)* |
 
-`Default` (`filterStatus`) and `OnChange`
-(`Set(filterStatus, Self.Selected.Value)`) stay as they are — the dropdown
-holds plain strings, so `filterStatus` is a label string, and the Part 2A
-filter coerces the column with `Text('Project Status') = filterStatus`.
+The gallery filter (Step 7b) reads `ddStatus.Selected.Value` directly.
 
 > These seven labels must match your Project Status choice **exactly**
 > (see [`09-dataverse-schema.md` §5](09-dataverse-schema.md#5-choice-option-sets)).
 > A mismatch means that status filters to zero rows — copy them verbatim,
 > watching for "Test and Validation" vs. "Testing".
 >
-> **Delegable alternative (choice-native dropdown).** The `Text(...)`
-> filter isn't delegable. If you outgrow ~500 projects, switch to comparing
-> `OptionSetValue` to `OptionSetValue` so the filter runs server-side:
-> - `ddStatus.Items` = `Choices(Projects.'Project Status')`
-> - `ddStatus.AllowEmptySelection` = `true` (the cleared state = "All")
-> - `ddStatus.OnChange` = `Set(filterStatus, Self.Selected)`  *(stores the
->   choice value itself, not a string)*
-> - `App.OnStart`: `Set(filterStatus, Blank())` instead of `"All Statuses"`
-> - `btnReset.OnSelect`: `Set(filterStatus, Blank()); Reset(ddStatus)`
-> - Part 2A clause becomes: `(IsBlank(filterStatus) || 'Project Status' = filterStatus)`
->   — note this compares the column to a stored **choice**, never to a
->   `Choices(...)` record (which would throw "incompatible types").
->
-> Trade-off: you lose the explicit "All Statuses" row (clearing the
-> dropdown means "all"). Pick one approach and keep `Part 2A`, `Step 3`,
-> `OnStart`, and `Reset` consistent with it.
+> **Delegable alternative.** The inline filter coerces the choice with
+> `Text('Project Status')`, which is **not delegable**. If you outgrow
+> ~500 projects, bind this dropdown to the choice instead —
+> `ddStatus.Items = Choices(Projects.'Project Status')`,
+> `AllowEmptySelection = true` — and compare `OptionSetValue` to
+> `OptionSetValue` in Step 7b:
+> `(IsBlank(ddStatus.Selected) || 'Project Status' = ddStatus.Selected)`.
+> Compare to `ddStatus.Selected` (the choice), **never** to a
+> `Choices(...)` record — that throws "incompatible types". Trade-off:
+> you lose the explicit "All Statuses" row (clearing the dropdown = all).
 
 ### Step 4 — SBU dropdown (`ddSBU`)
 
@@ -277,8 +248,8 @@ as `Value` rows. Then set the dropdown:
 |---|---|
 | Items | `["All SBUs","PBB","Capital Markets","Wealth","Commercial","Direct Banking"]` |
 
-Either way, `Default` (`filterSBU`) and `OnChange`
-(`Set(filterSBU, Self.Selected.Value)`) stay unchanged.
+Either way, set `Default` = `"All SBUs"` and **delete the `OnChange`**.
+The gallery reads `ddSBU.Selected.Value` directly.
 
 > `Distinct` on Dataverse may show a delegation warning. SBU lists are
 > small (one row per valid SBU/LOB combo), so the result is well under the
@@ -300,34 +271,79 @@ ClearCollect(colFYOptions, "All FYs");
 Collect(colFYOptions, Distinct(Projects, 'Project Completion Fiscal Year').Value);
 ```
 
-then set `ddFY.Items = colFYOptions`. `Default` (`filterFY`) and
-`OnChange` (`Set(filterFY, Self.Selected.Value)`) unchanged.
+then set `ddFY.Items = colFYOptions`. Set `Default` = `"All FYs"` and
+**delete the `OnChange`**. The gallery reads `ddFY.Selected.Value`.
 
 ### Step 6 — Owner dropdown (`ddOwner`)
 
 | Property | Value |
 |---|---|
 | Items | `Distinct(Projects, 'AI Solution Owner Name')` |
+| AllowEmptySelection | `true` |
+| OnChange | *(delete it — leave blank)* |
 
-`Default`, `AllowEmptySelection`, and `OnChange` are unchanged from
-[`07-scrlist-guide.md` Step 18](07-scrlist-guide.md). (`Distinct` returns
-a `Value` column, so `Self.Selected.Value` still works.)
+Leave `Default` empty so it starts unselected (= all owners). The gallery
+treats a blank selection as "no owner filter" via
+`IsBlank(ddOwner.Selected.Value)`. (`Distinct` returns a `Value` column,
+so `ddOwner.Selected.Value` is the owner name.)
 
 ### Step 7 — Search box (`txtSearch`)
 
-No control change needed — `OnChange` still does
-`Set(filterSearch, Self.Text)`. The delegation-safe matching now happens
-in the `filteredUseCases` formula (Part 2A). Optionally update `HintText`
-to `"Use Case ID, name, owner…"`.
+**Delete the `OnChange`** (`Set(filterSearch, …)`) — the gallery reads
+`txtSearch.Text` directly. Optionally update `HintText` to
+`"Use Case ID, name, owner…"`.
 
 ---
 
-## Part 4 — Rewire the gallery rows
+## Part 4 — Inline filter, then the gallery rows
 
-The gallery `Items` is already `filteredUseCases`, which now points at
-Projects — so the gallery re-binds automatically. You only change the
-**row controls' Text/Fill** to the Dataverse columns. Enter the template
-(chevron next to `galUseCases`).
+### Step 7b — Bind the gallery to the inline filter
+
+Select `galUseCases` itself (the gallery node, **not** a control inside
+the template) and set its `Items` to the full filter:
+
+```powerfx
+Filter(
+    Projects,
+    (IsBlank(txtSearch.Text)
+        || StartsWith('Use Case ID',   txtSearch.Text)
+        || StartsWith('Use Case Name', txtSearch.Text)
+        || StartsWith('AI Solution Owner Name', txtSearch.Text))
+    && (ddStatus.Selected.Value = "All Statuses" || Text('Project Status') = ddStatus.Selected.Value)
+    && (ddSBU.Selected.Value    = "All SBUs"    || 'Business Hierarchy'.'Strategic Business Unit' = ddSBU.Selected.Value)
+    && (ddFY.Selected.Value     = "All FYs"     || 'Project Completion Fiscal Year' = ddFY.Selected.Value)
+    && (IsBlank(ddOwner.Selected.Value) || 'AI Solution Owner Name' = ddOwner.Selected.Value)
+)
+```
+
+How it works:
+
+- **References controls directly** (`txtSearch.Text`,
+  `ddStatus.Selected.Value`, …) so the gallery recomputes live — no
+  variables, no `OnChange`.
+- **Search uses `StartsWith`, not `in`.** `in` does **not** delegate to
+  Dataverse (silently caps at 500 rows). `StartsWith` delegates from the
+  start of the field. For contains-anywhere search, use the data source
+  `Search(Projects, txtSearch.Text, "cr123_usecasename", …)` instead.
+- **Status is a choice**, so `Text('Project Status')` coerces it to its
+  label for the text comparison. This single clause is **not delegable**
+  (a yellow warning) — fine under ~500 rows; see Step 3's delegable
+  alternative otherwise.
+- **SBU navigates the lookup**:
+  `'Business Hierarchy'.'Strategic Business Unit'`.
+- The `"All …"` sentinels (and `IsBlank` for search/owner) short-circuit
+  each clause when no filter is set.
+
+### Step 7c — Reset button (`btnReset`)
+
+With no variables, Reset just clears the controls back to their defaults:
+
+```powerfx
+Reset(txtSearch); Reset(ddStatus); Reset(ddSBU); Reset(ddFY); Reset(ddOwner)
+```
+
+Now build the row controls. Enter the template (chevron next to
+`galUseCases`).
 
 ### Step 8 — Text columns
 
@@ -441,17 +457,25 @@ and show `gblProjectCount` (refresh on screen `OnVisible`), or accept the
 
 ### Step 15 — Footer count label (`lblFooterCount`)
 
+With inline filtering there's no `filteredUseCases` to count — reference
+the gallery's own rows via `galUseCases.AllItems`:
+
 ```powerfx
-"Showing " & Text(CountRows(filteredUseCases)) & " of " & Text(CountRows(Projects))
+"Showing " & Text(CountRows(galUseCases.AllItems)) & " of " & Text(CountRows(Projects))
 ```
 
 ### Step 16 — Footer scroll-status label (`lblScrollStatus`)
 
 ```powerfx
-If(CountRows(filteredUseCases) >= CountRows(Projects),
+If(CountRows(galUseCases.AllItems) >= CountRows(Projects),
    "All " & Text(CountRows(Projects)) & " use cases shown",
-   Text(CountRows(Projects) - CountRows(filteredUseCases)) & " hidden by filters")
+   Text(CountRows(Projects) - CountRows(galUseCases.AllItems)) & " hidden by filters")
 ```
+
+> `galUseCases.AllItems` is the gallery's currently-loaded (filtered) set.
+> Under ~500 rows the gallery loads everything, so the count is exact. On
+> very large tables it reflects only loaded rows — switch to the delegable
+> filter design (Step 3 note) and a cached total if that becomes an issue.
 
 ---
 
@@ -465,13 +489,14 @@ Before you call it done, hunt blue-underlined warnings:
 2. **Raise the limit as a stopgap:** Settings → General → *Data row
    limit for non-delegable queries* → set to 2000 (max). This is a
    band-aid, not a fix — it just delays the cliff.
-3. **The real fixes** are already in this guide: `StartsWith`/`Search`
-   instead of `in` for search, choice-to-choice comparisons, and a rollup
-   column for Realized Value. `Filter`, `Sort`, `StartsWith`, and `=`
-   comparisons all delegate to Dataverse.
-4. `Distinct` and `CountRows` over the whole table are the remaining
-   non-delegable spots; they're acceptable here because the SBU list is
-   tiny and the count tolerates approximation. Note them and move on.
+3. **Expected, acceptable warnings** in this design: the Status
+   `Text('Project Status')` clause in the gallery `Items`, `Distinct` for
+   the SBU/FY lists, and `CountRows` over the whole table. All are fine
+   under ~500 rows. `Filter`, `Sort`, `StartsWith`, and `=` themselves
+   delegate.
+4. **The real fixes** already applied: `StartsWith` (not `in`) for search,
+   and a rollup column for Realized Value. If you need the Status filter
+   to delegate too, use the choice-native dropdown from the Step 3 note.
 
 ---
 
@@ -492,8 +517,9 @@ Press **F5** and walk through:
 - [ ] Clicking a row navigates to `srcDetail` with `selectedUC`
       populated (detail fields may show blank until you migrate
       `srcDetail` — expected).
-- [ ] No blue delegation underline on `galUseCases.Items`,
-      `txtSearch`, or the filter dropdowns.
+- [ ] `galUseCases.Items` shows a delegation warning **only** on the
+      Status `Text(...)` clause (expected). No *other* unexpected
+      underlines, and no red errors.
 
 When these pass, `srcList` is fully on Dataverse. Then **drop the
 `ClearCollect(colUseCases, …)` block** from `App.OnStart` (it's now dead
@@ -522,16 +548,17 @@ data) — but only after `srcDetail`/`srcNew` no longer reference
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Gallery is empty after rebind | `filteredUseCases` still references `colUseCases`, or the Status clause is malformed | Repaste Part 2A. The Status clause is `Text('Project Status') = filterStatus` (or, in the delegable design, `'Project Status' = filterStatus` where `filterStatus` holds a **choice** from `Choices()`). |
+| Gallery is empty after rebind | `galUseCases.Items` still references `colUseCases`/`filteredUseCases`, or a clause is malformed | Repaste the inline `Filter` from Step 7b. The Status clause is `(ddStatus.Selected.Value = "All Statuses" \|\| Text('Project Status') = ddStatus.Selected.Value)`. |
+| Filters don't react when I type / pick | A dropdown still has an old `OnChange` `Set(filterX, …)`, or the gallery references a variable instead of the control | Clear every dropdown/search `OnChange` (Part 3); the gallery `Items` must reference `txtSearch.Text` / `dd*.Selected.Value` directly (Step 7b). |
 | `'...'.Value` / `'Project Status'.Value` errors with "name isn't valid" | A choice column has no `.Value` property — that's only on `Choices()` rows and `Dropdown.Selected.Value` | Drop `.Value`. Display: `ThisItem.'Project Status'`. Compare: choice-to-choice (Part 2A / Step 11). |
-| "Incompatible types: OptionSetValue and Text" | Comparing the choice column directly to a string (`'Project Status' = "Development"` or `= filterStatus`) | Wrap the column: `Text('Project Status') = filterStatus`. |
+| "Incompatible types: OptionSetValue and Text" | Comparing the choice column directly to a string (`'Project Status' = "Development"` or `= ddStatus.Selected.Value`) | Wrap the column: `Text('Project Status') = ddStatus.Selected.Value`. |
 | "Incompatible types: OptionSetValue and Record" | Comparing the column to a `Choices(...)` / `LookUp(Choices(...))` **record** | Don't compare to a record. Use `Text('Project Status') = <string>`, or in the delegable design compare to `ddStatus.Selected` (a choice) — never `.Selected.Value`. |
 | SBU column blank for every row | Lookup column not navigated, or the related Business Hierarchy row isn't set on the project | Use `ThisItem.'Business Hierarchy'.'Strategic Business Unit'`. If still blank, the project's lookup is empty in Dataverse. |
 | `'Business Hierarchy'` not recognized | The lookup column has a different display name | Type `ThisItem.` in the formula bar and pick the actual lookup column from the suggestion list; use that quoted name. |
 | Status pill always gray | Switch still keys off old codes (`"DataPrep"`), or the column isn't wrapped in `Text()` so no branch matches | Use Step 11's `Switch(Text(ThisItem.'Project Status'), "<label>", …)` with the exact Dataverse labels. |
 | Status filter returns zero rows | A label in `ddStatus.Items` doesn't match the Dataverse choice exactly | Copy labels verbatim from the choice definition (§5 of the schema doc). Watch for "Test and Validation" vs "Testing". |
 | Realized Value always "—" | Rollup column hasn't recalculated yet, or Option B relationship name is wrong | Trigger the rollup (or wait for its schedule). For Option B, confirm the relationship name after `ThisItem.` (often plural, e.g. `Values`). |
-| Blue underline on `galUseCases.Items` | `in` operator or non-delegable function in `filteredUseCases` | Use `StartsWith`/`Search` (Part 2A). Raise the row limit to 2000 as a stopgap. |
+| Blue underline on `galUseCases.Items` | A delegation warning. The Status `Text(...)` clause warns **by design**; the `in` operator would also warn | The Status warning is expected (Part 6). For search use `StartsWith` (Step 7b), not `in`. Raise the row limit to 2000 as a stopgap. |
 | `Value(...)` / `'Value'` errors in a formula | Table named `Value` collides with the `Value()` function | Always quote the table as `'Value'`; or rename the data source in **Data**. |
 | `selectedUC.<field>` errors on srcDetail | OnStart seed still uses collection field names | Set `Set(selectedUC, Defaults(Projects))` in OnStart (Part 2B). Full srcDetail migration is separate. |
 | "Last Updated" shows a huge number | `Modified On` is a DateTime, off by timezone, or record never saved | Expected for newly imported rows; `DateDiff` against `Today()` still works. Confirm you used `ThisItem.'Modified On'`. |
