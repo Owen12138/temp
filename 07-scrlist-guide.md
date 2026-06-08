@@ -119,14 +119,19 @@ Inside `conTitleRow`, Insert → **Label**.
 | Property | Value |
 |----------|-------|
 | Name | `lblPageCount` |
-| Text | `Text(CountRows(colUseCases)) & " use cases"` |
+| Text | `"Showing " & Text(CountRows(galUseCases.AllItems)) & " of " & Text(CountRows(colUseCases))` |
 | X | `lblPageTitle.X + lblPageTitle.Width + 8` |
 | Y | `8` |
-| Width | `140` |
+| Width | `220` |
 | Height | `20` |
 | Size | `14` |
 | Color | `gblTheme.Ink3` |
 | Font | `gblTheme.FontFamily` |
+
+> This chip now carries the filtered/total count that used to live in the
+> gallery footer (the footer is removed — see Part 6). `galUseCases`
+> doesn't exist until Step 25, so this label shows a temporary error until
+> you build the gallery; it clears once `galUseCases` is on the screen.
 
 ### Step 8 — Subtitle
 
@@ -195,8 +200,9 @@ Inside `conTitleRow`, Insert → **Button**.
 
 Preview. You should see:
 
-- [ ] Big "View/Edit Use Cases" title, "10 use cases" count chip to its
-      right.
+- [ ] Big "View/Edit Use Cases" title, "Showing 10 of 10" count chip to
+      its right. (It shows a temporary error until the gallery exists —
+      Step 25 — because the chip references `galUseCases.AllItems`.)
 - [ ] Subtitle below in lighter gray.
 - [ ] Two buttons on the right: Export (white, maroon border) and
       "+ New Use Case" (solid maroon).
@@ -523,6 +529,10 @@ All nine share these properties:
 | Color | `White` |
 | Font | `gblTheme.FontFamily` |
 | PaddingLeft | `0` |
+| Wrap | `false` |
+
+`Wrap: false` keeps each header on one line — without it, a heading like
+"AI Solution Owner" wraps in a narrow column and overflows the 36px strip.
 
 > **Adding or removing a column later:** just insert a new label
 > inside `conGalleryHeader` (or delete an existing one) and set its
@@ -557,7 +567,7 @@ Inside `conGallery`, Insert → **Gallery** → **Blank vertical**.
 | X | `0` |
 | Y | `36` |
 | Width | `Parent.Width` |
-| Height | `Parent.Height - 36 - 40` |
+| Height | `Parent.Height - 36` |
 | Items | `filteredUseCases` |
 | TemplateSize | `52` |
 | TemplatePadding | `0` |
@@ -572,9 +582,11 @@ Set(currentSection, "Info");
 Navigate(srcDetail, ScreenTransition.None)
 ```
 
-The 40 reserved at the bottom of Height is for `conGalleryFooter` in
-Part 6. The row template (built in Steps 26–29) will host its own
-Horizontal Container that mirrors `conGalleryHeader`.
+`Height = Parent.Height - 36` lets the gallery fill the card all the way
+to the bottom (no footer is reserved — the footer is removed in this
+scroll-based layout; the count moved to the title chip in Step 7). The row
+template (built in Steps 26–29) will host its own Horizontal Container
+that mirrors `conGalleryHeader`.
 
 ### Step 26 — Row template structure
 
@@ -645,7 +657,18 @@ labels) — they're empty wrappers that get filled in Steps 28 and 29.
 | 8 | Label | `lblUpdated` | (see below) | `110` | 12 | `gblTheme.Ink2` | `FontWeight.Normal` |
 | 9 | Container (classic) | `conActionCol` | — | `80` | — | — | — |
 
-All 7 labels share Font=`gblTheme.FontFamily` and PaddingLeft=`0`.
+All 7 labels share Font=`gblTheme.FontFamily`, PaddingLeft=`0`,
+**`Wrap = false`**, and **`VerticalAlign = VerticalAlign.Middle`**.
+
+`Wrap = false` is the fix for long values (long names, SBUs, owners)
+spilling **above and below** the row: it forces each cell onto a single
+line and clips cleanly at the column edge instead of wrapping and
+overflowing the fixed row height. `VerticalAlign.Middle` centres that
+single line in the row.
+
+Also set each label's **`Tooltip`** to the same value as its `Text` (e.g.
+`lblName.Tooltip = ThisItem.Name`, `lblSBU.Tooltip = ThisItem.SBU`) so the
+full text shows on hover when a long value is clipped.
 
 The two wrapper Containers (`conStatusCol` and `conActionCol`) need
 just two properties: `FillPortions` (from the table) and
@@ -811,112 +834,21 @@ same integer in both tables.
 
 ---
 
-## Part 6 — Gallery footer
+## Part 6 — (No gallery footer)
 
-A small status bar showing visible / total counts, with a maroon
-scroll-status dot on the right.
+**There is no footer.** This is a scrolling list, not a paginated one, so
+a bottom status bar adds nothing — the gallery lazy-loads as you scroll
+and there are no pages to track. The visible/total count it used to show
+now lives in the **title chip** (`lblPageCount`, Step 7), which reads
+`"Showing " & CountRows(galUseCases.AllItems) & " of " & CountRows(colUseCases)`.
+Removing the footer also lets `galUseCases` fill the card to the bottom
+(`Height = Parent.Height - 36`, Step 25), giving you a taller, more
+readable list.
 
-### Step 31 — Footer container
-
-> **Why a Container and not a Rectangle?** A Rectangle is a primitive
-> shape — Power Apps won't let you drop anything inside it. We need
-> the footer to host four children (top-border rectangle, count label,
-> scroll dot, scroll-status label), so it must be a Container. The
-> `con` prefix in the name reflects that.
-
-Inside `conGallery` (not inside the gallery template — back out first),
-Insert → **Container** (the classic Container, not horizontal/vertical).
-
-| Property | Value |
-|----------|-------|
-| Name | `conGalleryFooter` |
-| X | `0` |
-| Y | `Parent.Height - 40` |
-| Width | `Parent.Width` |
-| Height | `40` |
-| Fill | `RGBA(250, 250, 250, 1)` |
-| BorderThickness | `0` |
-
-Add a 1px top border. Inside `conGalleryFooter`, Insert → **Rectangle**:
-
-| Property | Value |
-|----------|-------|
-| Name | `recFooterTop` |
-| X | `0` |
-| Y | `0` |
-| Width | `Parent.Width` |
-| Height | `1` |
-| Fill | `gblTheme.Border` |
-| BorderThickness | `0` |
-
-(The Rectangle works as a child here because its **parent** is the
-Container `conGalleryFooter` — not another Rectangle.)
-
-### Step 32 — Count label (left)
-
-Inside `conGalleryFooter`, Insert → **Label**.
-
-| Property | Value |
-|----------|-------|
-| Name | `lblFooterCount` |
-| Text | `"Showing " & Text(CountRows(filteredUseCases)) & " of " & Text(CountRows(colUseCases))` |
-| X | `14` |
-| Y | `(Parent.Height - Self.Height) / 2` |
-| Width | `300` |
-| Height | `20` |
-| Size | `12` |
-| Color | `gblTheme.Ink3` |
-
-### Step 33 — Scroll-status dot
-
-Inside `conGalleryFooter`, Insert → **Icons** → **Circle** (if you can't
-find Circle, insert a Rectangle and set RadiusTop/Bottom Left/Right to
-`999`).
-
-| Property | Value |
-|----------|-------|
-| Name | `icnScrollDot` |
-| X | `Parent.Width - 220` |
-| Y | `(Parent.Height - Self.Height) / 2` |
-| Width | `7` |
-| Height | `7` |
-| Fill | `gblTheme.Maroon` |
-| BorderThickness | `0` |
-
-### Step 34 — Scroll-status label
-
-Inside `conGalleryFooter`, Insert → **Label**.
-
-| Property | Value |
-|----------|-------|
-| Name | `lblScrollStatus` |
-| Text | `If(CountRows(filteredUseCases) >= CountRows(colUseCases), "All " & Text(CountRows(colUseCases)) & " use cases shown", Text(CountRows(colUseCases) - CountRows(filteredUseCases)) & " hidden by filters")` |
-| X | `icnScrollDot.X + icnScrollDot.Width + 8` |
-| Y | `(Parent.Height - Self.Height) / 2` |
-| Width | `220` |
-| Height | `20` |
-| Size | `12` |
-| FontWeight | `FontWeight.Semibold` |
-| Color | `gblTheme.Ink2` |
-
-> **Why not "Scroll to load more"?** Earlier drafts copied that text
-> from the HTML prototype, but the gallery here sets
-> `Items = filteredUseCases` — every matching row is already loaded.
-> Scrolling moves through the visible list (Power Apps virtualises the
-> render), but it doesn't fetch anything. Rows that don't show are
-> filtered out, not pending — so the label tells you that directly.
-
-### Step 35 — Sanity check
-
-Preview:
-
-- [ ] Footer strip pinned at the bottom of the gallery card with a 1px
-      top border.
-- [ ] Left: `"Showing 10 of 10"`.
-- [ ] Right: maroon dot + `"All 10 use cases shown"` in semibold.
-- [ ] Apply any filter (e.g. Status = "Monitoring" → 2 rows visible).
-      The left label updates to `"Showing 2 of 10"`; the right label
-      flips to `"8 hidden by filters"`.
+> **Migrating from an earlier build that had the footer?** Delete
+> `conGalleryFooter` (and its children `recFooterTop`, `lblFooterCount`,
+> `icnScrollDot`, `lblScrollStatus`), set `galUseCases.Height =
+> Parent.Height - 36`, and update `lblPageCount.Text` per Step 7.
 
 ---
 
@@ -925,12 +857,12 @@ Preview:
 Press **F5** on `srcList` and walk through:
 
 - [ ] Header (top), rail (left), and content area visible.
-- [ ] Title row: `"View/Edit Use Cases"` + `"10 use cases"` + subtitle.
-      Export button (white / maroon border) and "+ New Use Case" button
-      (solid maroon) on the right.
+- [ ] Title row: `"View/Edit Use Cases"` + `"Showing 10 of 10"` chip +
+      subtitle. Export button (white / maroon border) and "+ New Use Case"
+      button (solid maroon) on the right.
 - [ ] Filter card: six columns of search + dropdowns + Reset.
-- [ ] Gallery card: maroon header strip, 10 rows underneath, footer at
-      bottom.
+- [ ] Gallery card: maroon header strip, 10 rows underneath, filling the
+      card to the bottom (no footer).
 - [ ] Type `"Mortgage"` in Search → 1 row.
 - [ ] Set Status to `"Monitoring"` → 2 rows.
 - [ ] Click Reset → 10 rows again.
@@ -969,6 +901,6 @@ in `02-build-guide.md`).
 | Export button doesn't show a notification | `Notify(...)` only fires in app preview, not Studio edit mode | Press F5, then click. |
 | Hover on rows does nothing visible | You're testing in Studio edit mode | Press F5 — hover effects only run in preview. |
 | Filter card is too short / tall | Wrong Height on `conFilterCard` | Should be exactly `92`. |
-| Gallery footer overlaps the last row | Gallery Height didn't reserve 40 for the footer | Set `galUseCases.Height = Parent.Height - 36 - 40`. |
-| Can't insert anything inside `conGalleryFooter` — Studio greys out / does nothing | It was inserted as a Rectangle, which can't have children | Delete it and re-insert as a classic **Container** (Step 31). Then add `recFooterTop`, `lblFooterCount`, `icnScrollDot`, `lblScrollStatus` inside. |
+| Count chip (`lblPageCount`) shows a red error | It references `galUseCases.AllItems` but the gallery doesn't exist yet | Expected during build — it clears once `galUseCases` is added (Step 25). |
+| Gallery doesn't reach the bottom of the card | `galUseCases.Height` still reserves 40px for the removed footer | Set `galUseCases.Height = Parent.Height - 36` (Step 25). There is no footer in this layout (Part 6). |
 | Selecting "All FYs" in `ddFY` shows zero rows (or a different filter's "All" option does the same) | The `App.Formulas` filter clause for that field doesn't match the dropdown's sentinel string | The clause must compare against the exact "All …" string the dropdown writes. E.g. `(filterFY = "All FYs" \|\| FY = filterFY)`. Also update `App.OnStart` so the initial value matches (`Set(filterFY, "All FYs")`) and `btnReset.OnSelect` so Reset returns to the All option. If you used a different label than `"All FYs"`, swap it in all four places. |

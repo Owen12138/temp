@@ -3,7 +3,7 @@
 This guide converts the **Use Case List screen (`srcList`)** from the
 in-memory `colUseCases` sample collection (v1) to the **live Dataverse
 tables** (v2). When you finish, the same list — same layout, filters,
-pill, footer — is reading and filtering real **Projects** rows, with SBU
+status pill — is reading and filtering real **Projects** rows, with SBU
 resolved through the **Business Hierarchy** lookup and Realized Value
 rolled up from the **Value** child table.
 
@@ -372,13 +372,15 @@ Update each row label's `Text` (names from [`07` Step 27](07-scrlist-guide.md)):
 | `lblOwner` | `ThisItem.Owner` | `ThisItem.'AI Solution Owner Name'` |
 | `lblFY` | `ThisItem.FY` | `ThisItem.'Project Completion Fiscal Year'` |
 
-> **SBU column width.** Lookup-resolved SBU names are wider than the old
-> codes and clip in the default column. The column was widened to
-> `FillPortions = 180` (trimming Use Case Name to `260`) in
-> [`07` Steps 23 & 27](07-scrlist-guide.md) — make sure both `lblColSBU`
-> (header) and `lblSBU` (row) use the **same** value or they'll misalign.
-> If your longest SBU still clips, bump SBU up and Name down by the same
-> amount (they're proportional).
+> **Long text overflow (SBU and others).** Real Dataverse values (SBU,
+> names, owners) are longer than the sample data and, with `Wrap = true`,
+> wrap onto multiple lines that spill **above and below** the fixed row.
+> The fix (applied in [`07` Step 27](07-scrlist-guide.md)) is on the row
+> labels: **`Wrap = false`** + **`VerticalAlign = Middle`** so each cell is
+> a single clipped line, plus **`Tooltip = ThisItem.<field>`** for the full
+> value on hover. The SBU column was also widened to `FillPortions = 180`
+> (Name trimmed to `260`) — keep `lblColSBU` (header) and `lblSBU` (row)
+> equal or they misalign.
 
 ### Step 9 — Realized Value (`lblValue`)
 
@@ -461,44 +463,29 @@ need the same rename pass — out of scope here, see Part 7.)
 
 ---
 
-## Part 5 — Title chip and footer counts
+## Part 5 — Title chip (no footer)
 
-These used `CountRows(colUseCases)`. On Dataverse, an unfiltered
-`CountRows(Projects)` is **not delegable** and will count only the first
-loaded page. Use the patterns below.
+This layout has **no gallery footer** (it's a scrolling list, not
+paginated — [`07` Part 6](07-scrlist-guide.md)). The visible/total count
+lives in the **title chip** instead, and the gallery fills the card to the
+bottom (`galUseCases.Height = Parent.Height - 36`).
 
 ### Step 14 — Page count chip (`lblPageCount`)
 
-```powerfx
-Text(CountRows(Projects)) & " use cases"
-```
-
-For tables under ~500 rows this is exact. For larger tables, maintain a
-count in `App.OnStart` with `Set(gblProjectCount, CountRows(Projects))`
-and show `gblProjectCount` (refresh on screen `OnVisible`), or accept the
-"500+" approximation.
-
-### Step 15 — Footer count label (`lblFooterCount`)
-
-With inline filtering there's no `filteredUseCases` to count — reference
-the gallery's own rows via `galUseCases.AllItems`:
+Show the filtered count over the total:
 
 ```powerfx
 "Showing " & Text(CountRows(galUseCases.AllItems)) & " of " & Text(CountRows(Projects))
 ```
 
-### Step 16 — Footer scroll-status label (`lblScrollStatus`)
+- `galUseCases.AllItems` = the gallery's currently-loaded (filtered) rows.
+- `CountRows(Projects)` is the total. Under ~500 rows it's exact; on
+  larger tables it caps at the delegation limit — cache it in `OnVisible`
+  (`Set(gblProjectCount, CountRows(Projects))`) or accept the "500+"
+  approximation.
 
-```powerfx
-If(CountRows(galUseCases.AllItems) >= CountRows(Projects),
-   "All " & Text(CountRows(Projects)) & " use cases shown",
-   Text(CountRows(Projects) - CountRows(galUseCases.AllItems)) & " hidden by filters")
-```
-
-> `galUseCases.AllItems` is the gallery's currently-loaded (filtered) set.
-> Under ~500 rows the gallery loads everything, so the count is exact. On
-> very large tables it reflects only loaded rows — switch to the delegable
-> filter design (Step 3 note) and a cached total if that becomes an issue.
+If you'd built the footer from `07` earlier, delete `conGalleryFooter`
+(and its children) and set the gallery height per Step 25 of that guide.
 
 ---
 
@@ -536,7 +523,10 @@ Press **F5** and walk through:
 - [ ] Status / SBU / FY / Owner dropdowns filter correctly; "All …"
       options show everything.
 - [ ] Reset returns the full list.
-- [ ] Footer reads "Showing X of Y" and flips to "N hidden by filters".
+- [ ] Title chip reads "Showing X of Y" and updates as you filter.
+- [ ] Long values (names, SBU, owner) stay on one line and don't overflow
+      the row vertically; hovering shows the full text (tooltip).
+- [ ] Gallery fills the card to the bottom (no footer).
 - [ ] Clicking a row navigates to `srcDetail` with `selectedUC`
       populated (detail fields may show blank until you migrate
       `srcDetail` — expected).
