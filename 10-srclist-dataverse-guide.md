@@ -276,16 +276,25 @@ then set `ddFY.Items = colFYOptions`. Set `Default` = `"All FYs"` and
 
 ### Step 6 — Owner dropdown (`ddOwner`)
 
+For consistency with the other dropdowns, give Owner an explicit
+`"All Owners"` row. You can't prepend it to `Distinct(...)` inline, so
+build the list in `App.OnStart` (same Pattern A as SBU/FY):
+
+```powerfx
+ClearCollect(colOwnerOptions, "All Owners");
+Collect(colOwnerOptions, Distinct(Projects, 'AI Solution Owner Name').Value);
+```
+
+Then set:
+
 | Property | Value |
 |---|---|
-| Items | `Distinct(Projects, 'AI Solution Owner Name')` |
-| AllowEmptySelection | `true` |
+| Items | `colOwnerOptions` |
+| Default | `"All Owners"` |
 | OnChange | *(delete it — leave blank)* |
 
-Leave `Default` empty so it starts unselected (= all owners). The gallery
-treats a blank selection as "no owner filter" via
-`IsBlank(ddOwner.Selected.Value)`. (`Distinct` returns a `Value` column,
-so `ddOwner.Selected.Value` is the owner name.)
+Leave `AllowEmptySelection` off. The gallery reads `ddOwner.Selected.Value`
+and treats `"All Owners"` as "no owner filter" (Step 7b).
 
 ### Step 7 — Search box (`txtSearch`)
 
@@ -312,7 +321,7 @@ Filter(
     && (ddStatus.Selected.Value = "All Statuses" || Text('Project Status') = ddStatus.Selected.Value)
     && (ddSBU.Selected.Value    = "All SBUs"    || 'Business Hierarchy'.'Strategic Business Unit' = ddSBU.Selected.Value)
     && (ddFY.Selected.Value     = "All FYs"     || 'Project Completion Fiscal Year' = ddFY.Selected.Value)
-    && (IsBlank(ddOwner.Selected.Value) || 'AI Solution Owner Name' = ddOwner.Selected.Value)
+    && (ddOwner.Selected.Value  = "All Owners"  || 'AI Solution Owner Name' = ddOwner.Selected.Value)
 )
 ```
 
@@ -331,7 +340,7 @@ How it works:
   alternative otherwise.
 - **SBU navigates the lookup**:
   `'Business Hierarchy'.'Strategic Business Unit'`.
-- The `"All …"` sentinels (and `IsBlank` for search/owner) short-circuit
+- The `"All …"` sentinels (and `IsBlank` for the search box) short-circuit
   each clause when no filter is set.
 
 ### Step 7c — Reset button (`btnReset`)
