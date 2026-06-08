@@ -66,6 +66,9 @@ and tuning its layout:
 - **`11-srclist-layout-tuning.md`** — optional layout pass: full-text
   (wrapped) rows, smaller font, shorter title row / filter card, and a
   bigger gallery. Supersedes the clip-based row settings in 07/10.
+- **`12-office365-user-guide.md`** — wire the header to the real signed-in
+  Office 365 user (name, initials, photo) in a corporate tenant, plus the
+  X-value pattern for right-aligning the header user cluster.
 
 ## Order to ship
 

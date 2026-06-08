@@ -220,6 +220,8 @@ ClearCollect(colTechReview,
 // APP STATE
 // ──────────────────────────────────────────────────────────────
 Set(currentUser, { FullName: "Owen Huang", Initials: "OH" });
+// ^ Sample user. To use the real signed-in Office 365 user (name, initials,
+//   photo) in a corporate tenant, see 12-office365-user-guide.md.
 
 // Initialize selectedUC as a TYPED blank — NOT Blank() — so Power Apps
 // can resolve selectedUC.Name, selectedUC.UCID etc. on all screens
