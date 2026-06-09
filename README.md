@@ -76,6 +76,9 @@ and tuning its layout:
   screen to Dataverse with Edit forms: Info form rebind, the
   section-form recipe for Contacts/Funds/Gov/Tech/Updates (now Projects
   fields), and the Value child table (gallery + form).
+- **`15-srclist-columns-update.md`** — change the srcList gallery to the
+  10-column set (adds Est. Completion, AI Enablement Owner, Executive
+  Sponsor; drops FY; Realized Value (YTD) left as a placeholder).
 
 ## Order to ship
 

@@ -372,6 +372,11 @@ Update each row label's `Text` (names from [`07` Step 27](07-scrlist-guide.md)):
 | `lblOwner` | `ThisItem.Owner` | `ThisItem.'AI Solution Owner Name'` |
 | `lblFY` | `ThisItem.FY` | `ThisItem.'Project Completion Fiscal Year'` |
 
+> **Changing the column set?** To switch srcList to the 10-column layout
+> (UC ID, Name, SBU, AI Solution Owner, Project Status, Est. Completion,
+> Realized Value YTD, Last Updated, AI Enablement Owner, Executive
+> Sponsor), see [`15-srclist-columns-update.md`](15-srclist-columns-update.md).
+
 > **Long text overflow (SBU and others).** Real Dataverse values (SBU,
 > names, owners) are longer than the sample data and, with `Wrap = true`,
 > wrap onto multiple lines that spill **above and below** the fixed row.
