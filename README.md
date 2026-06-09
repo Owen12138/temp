@@ -77,8 +77,8 @@ and tuning its layout:
   section-form recipe for Contacts/Funds/Gov/Tech/Updates (now Projects
   fields), and the Value child table (gallery + form).
 - **`15-srclist-columns-update.md`** — change the srcList gallery to the
-  10-column set (adds Est. Completion, AI Enablement Owner, Executive
-  Sponsor; drops FY; Realized Value (YTD) left as a placeholder).
+  10-column set + View button (adds Est. Completion, AI Enablement Owner,
+  Executive Sponsor; drops FY; Realized Value (YTD) left as a placeholder).
 
 ## Order to ship
 

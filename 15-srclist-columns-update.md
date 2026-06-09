@@ -6,7 +6,8 @@ Change the Use Case List gallery to this **10-column** set:
 > Completion Date · Realized Value (YTD) · Last Updated · AI Enablement
 > Owner · Executive Sponsor
 
-vs. the original 9 columns this:
+…plus the existing **View** button as the last column (kept). vs. the
+original 9 columns this:
 - **removes** the `FY` column,
 - **renames** `Status` → `Project Status` and `Realized Value` →
   `Realized Value (YTD)` (left **empty** for now — logic comes later),
@@ -35,19 +36,19 @@ misalign.
 | 8 | `Last Updated` | `lblColUpdated` | `lblUpdated` | *(unchanged — relative date)* | `110` |
 | 9 | `AI Enablement Owner` | `lblColEnablementOwner` | `lblEnablementOwner` | `ThisItem.'AI Enablement Owner Name'` | `140` |
 | 10 | `Executive Sponsor` | `lblColExecSponsor` | `lblExecSponsor` | `ThisItem.'Executive Sponsor Name'` | `140` |
+| 11 | *(blank)* | `lblColAction` | `conActionCol` (`btnView`) | *(View button — unchanged)* | `70` |
 
 > Confirm the exact Dataverse display names against your tables (esp.
 > **`Estimated Completion Time`** and the two new owner fields) via
 > IntelliSense — type `ThisItem.` in the formula bar. If your "estimated
 > completion" column is named differently, use that name in Part C.
 
-> **Keeping the View button?** The original had a 9th "action" column
-> (`conActionCol` + `btnView`). The whole row is already clickable
-> (`galUseCases.OnSelect` navigates), so the explicit View button is
-> optional. Keep it as an 11th column (`FillPortions ≈ 70`) **or** delete
-> `lblColAction` + `conActionCol` to give the data columns more room — your
-> call. This guide leaves it out for breathing space; add it back if you
-> want it.
+> **View button (column 11) is kept.** The original "action" column —
+> header `lblColAction` (blank text) + row wrapper `conActionCol`
+> containing `btnView` — stays as the last column. Leave it exactly as
+> built; you only set its `FillPortions` (`70`) and make sure it's last in
+> the tree order. The whole row is also clickable
+> (`galUseCases.OnSelect`), so View is a convenience, not the only way in.
 
 ---
 
@@ -67,9 +68,12 @@ Select `conGalleryHeader` and work through its child labels.
    - `lblColEstDate` — Text `"Est. Completion"`
    - `lblColEnablementOwner` — Text `"AI Enablement Owner"`
    - `lblColExecSponsor` — Text `"Executive Sponsor"`
-4. **Set `FillPortions`** on every header label per the master table.
-5. **Reorder** the labels in the tree (top→bottom = left→right) to match
-   the column order 1→10.
+4. **Keep** the action heading `lblColAction` (blank text) — it's column
+   **11**.
+5. **Set `FillPortions`** on every header label per the master table
+   (including `lblColAction` = `70`).
+6. **Reorder** the labels in the tree (top→bottom = left→right) to match
+   the column order 1→11, with `lblColAction` **last**.
 
 ---
 
@@ -99,8 +103,12 @@ Enter the gallery template (chevron next to `galUseCases`) and edit
    | `lblEnablementOwner` | `ThisItem.'AI Enablement Owner Name'` | same |
    | `lblExecSponsor` | `ThisItem.'Executive Sponsor Name'` | same |
 
-5. **Set `FillPortions`** on every cell to match the header.
-6. **Reorder** `conRow`'s children in the tree to match column order 1→10.
+5. **Keep** the View wrapper `conActionCol` (with `btnView` inside) — it's
+   column **11**, unchanged.
+6. **Set `FillPortions`** on every cell to match the header (including
+   `conActionCol` = `70`).
+7. **Reorder** `conRow`'s children in the tree to match column order 1→11,
+   with `conActionCol` **last**.
 
 ---
 
@@ -135,11 +143,12 @@ differs.)
 
 ## Density note
 
-Ten columns across ~1,146 px is **tight** (~110 px each). With wrapping on
-(guide 11), longer names/owners will wrap to two lines — acceptable, but if
-it feels cramped:
+Ten data columns + the View column across ~1,146 px is **tight** (~95 px
+each). With wrapping on (guide 11), longer names/owners will wrap to two
+lines — acceptable, but if it feels cramped:
 
-- Drop the **View** column (the row is clickable anyway) — already omitted here.
+- Drop the **View** column (the row is clickable anyway) — delete
+  `lblColAction` + `conActionCol`.
 - Shorten headers (e.g. "AI Enablement Owner" → "AI Enablement").
 - Give the long text columns (Name, the three owners) more `FillPortions`
   and trim the short ones (UCID, dates) — they're proportional, so only the
@@ -160,6 +169,8 @@ Press **F5** on `srcList`:
 - [ ] Est. Completion shows a formatted date (or "—" when blank).
 - [ ] Realized Value (YTD) shows "—" in every row (placeholder).
 - [ ] Project Status still shows the colored pill.
+- [ ] The **View** button is the last column and still opens the detail
+      screen (and clicking the row anywhere also navigates).
 - [ ] Each row cell lines up under its header (FillPortions match).
 - [ ] Toggle the rail — all columns reflow proportionally, no clipping.
 
