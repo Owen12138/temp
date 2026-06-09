@@ -831,6 +831,11 @@ App.OnStart, see `01-app-setup.md`), there is no separate copy of the
 status list to keep in sync — all seven statuses, including
 **Decommissioning**, flow from the one collection.
 
+> **On Dataverse?** `selectedUC.Status` (a text code) becomes
+> `selectedUC.'Project Status'` (an option set), and the codes here don't
+> match the Dataverse choice labels — so this `Text` formula must change.
+> See [`13-status-stepper-dataverse-fix.md`](13-status-stepper-dataverse-fix.md).
+
 ### Step 30 — Status stepper — track line
 
 Inside `conSectionInfo`, Insert → **Rectangle** (this is the inactive
@@ -1828,6 +1833,7 @@ If all 13 boxes pass, `srcDetail` is done. Move on to `srcNew`
 |---------|-------|-----|
 | Screen errors with red squiggles on `selectedUC.Name`, `.UCID`, etc. on first load | `selectedUC` wasn't initialized as a typed record in `App.OnStart` | In `01-app-setup.md` section 2, ensure `selectedUC` is set to a literal record with **all 16 fields**, not `Blank()`. |
 | Stepper circles never highlight | `selectedUC.Status` doesn't match a `Code` in `colStatus` | Status codes must be exactly one of `colStatus.Code`: `Rationale`, `DataPrep`, `Development`, `Testing`, `Deployment`, `Monitoring`, `Decommissioning`. Check `colUseCases` data. |
+| Stepper circles never highlight **after switching to Dataverse** | `selectedUC.Status` is now the `'Project Status'` option set, and codes don't match the choice labels | Match on a new `DVStatus` field via `Text(selectedUC.'Project Status')` — see [`13-status-stepper-dataverse-fix.md`](13-status-stepper-dataverse-fix.md). |
 | Status changes don't update the stepper after Save | The `Status` card's **Update** writes the Label back to `Status` instead of the Code | Set the card **Update** to `LookUp(colStatus, Label = ddStatus2.Selected.Value, Code)` — see Step 34, Status card. |
 | Edits don't appear elsewhere after Save | `frmInfo.OnSuccess` doesn't refresh `selectedUC` | Set `OnSuccess = Set(selectedUC, frmInfo.LastSubmit)` — see Step 34. |
 | Save button never enables | Bound to the wrong state | `DisplayMode = If(frmInfo.Unsaved, DisplayMode.Edit, DisplayMode.Disabled)`; it enables only once a card changes. |

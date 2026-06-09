@@ -69,6 +69,9 @@ and tuning its layout:
 - **`12-office365-user-guide.md`** — wire the header to the real signed-in
   Office 365 user (name, initials, photo) in a corporate tenant, plus the
   X-value pattern for right-aligning the header user cluster.
+- **`13-status-stepper-dataverse-fix.md`** — fix the `srcDetail` status
+  stepper after moving to Dataverse (the `Project Status` option set +
+  label mismatch); adds a `DVStatus` bridge field to `colStatus`.
 
 ## Order to ship
 

@@ -77,14 +77,18 @@ Set(gblTheme, {
 // the stepper reads CountRows(colStatus) for the cell count and
 // LookUp(colStatus, Code = selectedUC.Status, Order) for the active step.
 // Add/remove a status here and the stepper re-lays-out automatically.
+// DVStatus = the exact Dataverse "Project Status" choice label, used to
+// map a Dataverse record's status to a stepper Order once you're on real
+// data (see 13-status-stepper-dataverse-fix.md). Harmless for the v1
+// collection build, where the stepper still matches on Code.
 ClearCollect(colStatus,
-    { Order: 1, Code: "Rationale",      Label: "Rationale",       Color: gblTheme.Ink3 },
-    { Order: 2, Code: "DataPrep",       Label: "Data Prep",       Color: gblTheme.Ink3 },
-    { Order: 3, Code: "Development",    Label: "Development",     Color: gblTheme.Info },
-    { Order: 4, Code: "Testing",        Label: "Testing",         Color: gblTheme.Warn },
-    { Order: 5, Code: "Deployment",     Label: "Deployment",      Color: gblTheme.Ok },
-    { Order: 6, Code: "Monitoring",     Label: "Monitoring",      Color: gblTheme.Monitor },
-    { Order: 7, Code: "Decommissioning",Label: "Decommissioning", Color: gblTheme.Decom }
+    { Order: 1, Code: "Rationale",      Label: "Rationale",       DVStatus: "Rationale for AI Solutions", Color: gblTheme.Ink3 },
+    { Order: 2, Code: "DataPrep",       Label: "Data Prep",       DVStatus: "Data Preparation",           Color: gblTheme.Ink3 },
+    { Order: 3, Code: "Development",    Label: "Development",     DVStatus: "Development",                 Color: gblTheme.Info },
+    { Order: 4, Code: "Testing",        Label: "Testing",         DVStatus: "Test and Validation",        Color: gblTheme.Warn },
+    { Order: 5, Code: "Deployment",     Label: "Deployment",      DVStatus: "Deployment",                 Color: gblTheme.Ok },
+    { Order: 6, Code: "Monitoring",     Label: "Monitoring",      DVStatus: "Monitoring and Review",      Color: gblTheme.Monitor },
+    { Order: 7, Code: "Decommissioning",Label: "Decommissioning", DVStatus: "Decommissioning",            Color: gblTheme.Decom }
 );
 
 ClearCollect(colSBU,
