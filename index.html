@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BOA — CIBC Business Opportunity Assessment</title>
+<style>
+  :root {
+    /* Match existing app */
+    --maroon: #7A1A2E;
+    --maroon-deep: #5E1322;
+    --maroon-light: #F2E6E9;
+    --cibc-red: #C41F3E;
+
+    --bg: #F5F5F5;
+    --surface: #FFFFFF;
+    --border: #E1E1E1;
+    --border-strong: #CFCFCF;
+
+    --ink: #252525;
+    --ink-2: #4A4A4A;
+    --ink-3: #6E6E6E;
+    --ink-4: #9A9A9A;
+
+    --ok: #2D7D3F;
+    --warn: #C58B1A;
+    --info: #1F6FB2;
+
+    --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+
+    --side-w: 220px;
+  }
+  body.side-collapsed { --side-w: 64px; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; border: none; background: none; }
+  a { color: var(--maroon); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding-left: var(--side-w);
+    transition: padding-left .18s ease;
+  }
+  .screen.active { display: block; }
+
+  /* ───── Maroon header (matches existing app) ───── */
+  .header {
+    background: var(--maroon);
+    color: white;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .screen > .header {
+    margin-left: calc(-1 * var(--side-w));
+    transition: margin-left .18s ease;
+  }
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    flex: 1;
+    text-align: center;
+  }
+  .header-left, .header-right {
+    display: flex; align-items: center; gap: 12px;
+    min-width: 240px;
+  }
+  .header-right { justify-content: flex-end; }
+  .header-cibc {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .header-cibc::after {
+    content: "";
+    display: inline-block;
+    width: 9px; height: 9px;
+    background: var(--cibc-red);
+    margin-left: 4px;
+    transform: translateY(1px);
+  }
+  .header-divider {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,.25);
+  }
+  .header-app {
+    font-size: 12px;
+    color: rgba(255,255,255,.8);
+  }
+  .header-user {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,.85);
+  }
+  .header-user .av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    color: white;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ───── Sub nav (under maroon header) ───── */
+  /* App-level navigation, moved out of the header bar */
+  .app-rail {
+    position: fixed;
+    left: 0;
+    top: 52px;
+    bottom: 0;
+    width: var(--side-w);
+    z-index: 60;
+    background: white;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: width .18s ease;
+  }
+  .app-rail-top {
+    height: 56px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-rail-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 3px;
+    color: var(--ink-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+  .app-rail-toggle:hover { background: #FAFAFA; color: var(--maroon); }
+  .app-rail-toggle svg,
+  .app-rail-link svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+  .app-rail-title {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .app-rail-nav {
+    list-style: none;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .app-rail-link {
+    min-height: 40px;
+    padding: 0 10px;
+    border-left: 3px solid transparent;
+    border-radius: 3px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .app-rail-link:hover { background: #FAFAFA; color: var(--ink); text-decoration: none; }
+  .app-rail-link.active {
+    background: var(--maroon-light);
+    border-left-color: var(--maroon);
+    color: var(--maroon);
+    font-weight: 600;
+  }
+  .app-rail-label {
+    min-width: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .app-rail-count {
+    font-size: 11px;
+    color: var(--ink-4);
+    background: #F0F0F0;
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .app-rail-link.active .app-rail-count {
+    background: white;
+    color: var(--maroon);
+  }
+  .app-rail-foot {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding: 10px 8px;
+  }
+  body.side-collapsed .app-rail-title,
+  body.side-collapsed .app-rail-label,
+  body.side-collapsed .app-rail-count {
+    display: none;
+  }
+  body.side-collapsed .app-rail-top {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  body.side-collapsed .app-rail-nav,
+  body.side-collapsed .app-rail-foot {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  body.side-collapsed .app-rail-link {
+    justify-content: center;
+    padding: 0;
+    border-left-color: transparent;
+  }
+
+  @media (max-width: 760px) {
+    :root { --side-w: 64px; }
+    .app-rail-title,
+    .app-rail-label,
+    .app-rail-count {
+      display: none;
+    }
+    .app-rail-top {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .app-rail-link {
+      justify-content: center;
+      padding: 0;
+      border-left-color: transparent;
+    }
+  }
+
+  /* ───── Page frame ───── */
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Landing page */
+  .landing-page {
+    min-height: calc(100vh - 52px);
+    display: grid;
+    place-items: center;
+    padding: 48px 24px;
+  }
+  .landing-actions {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 18px;
+    width: min(100%, 820px);
+  }
+  .landing-action {
+    min-height: 72px;
+    min-width: 220px;
+    padding: 0 26px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    background: white;
+    color: var(--maroon);
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .landing-action:hover {
+    border-color: var(--maroon);
+    background: var(--maroon-light);
+  }
+  .landing-action.primary {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: white;
+  }
+  .landing-action.primary:hover { background: var(--maroon-deep); }
+  .landing-action.idle {
+    color: var(--ink-2);
+    cursor: default;
+  }
+  .landing-action.idle:hover {
+    border-color: var(--border-strong);
+    background: white;
+  }
+
+  @media (max-width: 860px) {
+    .landing-actions {
+      flex-direction: column;
+      align-items: stretch;
+      max-width: 360px;
+    }
+    .landing-action {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+
+  /* Summary tile styles */
+  .vstats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .vstat {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .vstat-label {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+  }
+  .vstat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .vstat-value.accent { color: var(--maroon); }
+  .vstat-sub {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  /* ───── Page title row ───── */
+  .page-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .page-title-count {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink-3);
+    margin-left: 10px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  /* ───── Buttons (Power Apps style) ───── */
+  .btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 3px;
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--maroon);
+    color: white;
+    border-color: var(--maroon);
+  }
+  .btn-primary:hover { background: var(--maroon-deep); border-color: var(--maroon-deep); }
+  .btn-secondary {
+    background: white;
+    color: var(--maroon);
+    border-color: var(--maroon);
+  }
+  .btn-secondary:hover { background: var(--maroon-light); }
+  .btn-ghost {
+    color: var(--ink-2);
+    background: transparent;
+  }
+  .btn-ghost:hover { color: var(--maroon); }
+  .btn .ic {
+    width: 14px; height: 14px;
+  }
+
+  /* ───── Filter card ───── */
+  .filter-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  .filter-field { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .ctrl {
+    height: 32px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    background: white;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+  .ctrl:focus {
+    outline: none;
+    border-color: var(--maroon);
+  }
+  select.ctrl {
+    background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%236E6E6E' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 10px center;
+    appearance: none;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+  .reset-btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+  }
+  .reset-btn:hover { color: var(--maroon); border-color: var(--maroon); }
+
+  /* ───── Gallery / Table ───── */
+  .gallery {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .infinite-table {
+    max-height: calc(100vh - 310px);
+    min-height: 360px;
+    overflow-y: auto;
+  }
+  table.uc {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .uc thead th {
+    background: var(--maroon);
+    color: white;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .uc tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .uc tbody tr:last-child td { border-bottom: none; }
+  .uc tbody tr {
+    cursor: pointer;
+  }
+  .uc tbody tr:hover { background: #FAFAFA; }
+  .uc tbody tr:nth-child(even) { background: #FBFBFB; }
+  .uc tbody tr:nth-child(even):hover { background: #F4F4F4; }
+  .uc .name { font-weight: 600; color: var(--ink); }
+  .uc .ucid { color: var(--ink-3); font-size: 12px; }
+  .uc .view-btn {
+    padding: 4px 10px;
+    background: white;
+    border: 1px solid var(--maroon);
+    color: var(--maroon);
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .uc .view-btn:hover { background: var(--maroon); color: white; }
+
+  /* Status indicator */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .status .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .s-rationale .dot { background: #888; }
+  .s-data       .dot { background: #888; }
+  .s-dev        .dot { background: var(--info); }
+  .s-test       .dot { background: var(--warn); }
+  .s-deploy     .dot { background: var(--ok); }
+  .s-monitor    .dot { background: #4A7C8C; }
+  .s-decom      .dot { background: #B0B0B0; }
+
+  .gallery-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: #FAFAFA;
+    font-size: 12px;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .scroll-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .scroll-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--maroon);
+  }
+
+  /* ───── Detail page layout ───── */
+  #detail .detail-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 112px);
+  }
+
+  /* Detail top action row (matches existing pattern) */
+  .detail-actionbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 52px;
+    z-index: 40;
+  }
+  .detail-actionbar .crumb {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .detail-actionbar .crumb .current {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .detail-actionbar .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .save-note {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-right: 8px;
+  }
+  .save-note .ok {
+    color: var(--ok);
+    font-weight: 600;
+  }
+
+  /* Side rail */
+  .rail {
+    background: white;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 112px;
+    align-self: start;
+    height: calc(100vh - 112px);
+    overflow-y: auto;
+  }
+  .rail-head {
+    padding: 0 18px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .rail-ucid {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .rail-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .rail-status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .rail-nav {
+    list-style: none;
+  }
+  .rail-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 18px;
+    color: var(--ink-2);
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .rail-nav a:hover { background: #FAFAFA; color: var(--ink); text-decoration: none; }
+  .rail-nav a.active {
+    background: var(--maroon-light);
+    color: var(--maroon);
+    font-weight: 600;
+    border-left-color: var(--maroon);
+  }
+  .rail-nav .num {
+    font-size: 11px;
+    color: var(--ink-4);
+    background: #F0F0F0;
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .rail-nav a.active .num { background: white; color: var(--maroon); }
+
+  .rail-foot {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .rail-foot strong { color: var(--ink-2); font-weight: 600; }
+
+  /* Detail content */
+  .detail-content {
+    padding: 0;
+    min-width: 0;
+    background: var(--bg);
+  }
+
+  .section {
+    background: white;
+    margin: 20px 24px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 28px;
+    display: none;
+  }
+  .section.active { display: block; }
+  .section:first-of-type { margin-top: 24px; }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--maroon);
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--maroon);
+  }
+  .section-progress {
+    font-size: 12px;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .progress-bar {
+    width: 80px; height: 6px;
+    background: #EEE;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar .fill { height: 100%; background: var(--maroon); }
+
+  /* Form layout */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+  }
+  .field { display: flex; flex-direction: column; }
+  .field.full { grid-column: 1 / -1; }
+  .field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 5px;
+  }
+  .field label .req {
+    color: var(--cibc-red);
+    margin-right: 3px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="number"],
+  .field textarea,
+  .field select {
+    height: 36px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    background: white;
+    padding: 0 10px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .field textarea {
+    height: auto;
+    min-height: 80px;
+    padding: 10px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--maroon);
+  }
+  .field select {
+    background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%236E6E6E' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 10px center;
+    appearance: none;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+  .field-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  /* Person picker (simple) */
+  .person {
+    height: 36px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    background: white;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .person .av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--maroon);
+    color: white;
+    display: grid; place-items: center;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .person .em {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .person.empty {
+    color: var(--ink-4);
+    cursor: pointer;
+  }
+  .person.empty::before {
+    content: "+";
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px dashed var(--border-strong);
+    display: grid; place-items: center;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+
+  /* Stepper (simple) */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: #FAFAFA;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+  }
+  .stepper .step {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--ink-3);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .stepper .step .n {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid var(--border-strong);
+    display: grid; place-items: center;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .stepper .step.done { color: var(--ink-2); }
+  .stepper .step.done .n {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: white;
+  }
+  .stepper .step.current { color: var(--maroon); font-weight: 600; }
+  .stepper .step.current .n {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: white;
+    box-shadow: 0 0 0 3px var(--maroon-light);
+  }
+  .stepper .line {
+    flex: 1; min-width: 14px;
+    height: 1px;
+    background: var(--border-strong);
+    margin: 0 8px;
+  }
+  .stepper .line.done { background: var(--maroon); }
+
+  /* Value table */
+  .vtable {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .vtable table { width: 100%; border-collapse: collapse; }
+  .vtable th {
+    background: #F5F5F5;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    border-bottom: 1px solid var(--border);
+  }
+  .vtable td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .vtable tbody tr:last-child td { border-bottom: none; }
+  .vtable .vamt { font-weight: 600; color: var(--ink); }
+  .vtable .vamt.zero { color: var(--ink-4); font-weight: 400; }
+  .vtable .row-act { text-align: right; }
+  .vtable .row-act button {
+    padding: 3px 8px;
+    color: var(--maroon);
+    font-size: 12px;
+    border-radius: 2px;
+  }
+  .vtable .row-act button:hover { background: var(--maroon-light); }
+  .add-row {
+    padding: 10px;
+    text-align: center;
+    background: #FAFAFA;
+    border-top: 1px dashed var(--border-strong);
+  }
+  .add-row button {
+    color: var(--maroon);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .value-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .vsum {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    background: #FAFAFA;
+  }
+  .vsum-label {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .vsum-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .vsum-value.accent { color: var(--maroon); }
+
+  /* Checklist */
+  .checklist {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .check-item {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-box {
+    width: 18px; height: 18px;
+    border-radius: 2px;
+    border: 1.5px solid var(--border-strong);
+    display: grid; place-items: center;
+  }
+  .check-item.done .check-box {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: white;
+  }
+  .check-item.done .check-box::after {
+    content: "✓";
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .check-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .check-meta {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 1px;
+  }
+  .check-action {
+    font-size: 12px;
+    color: var(--ink-3);
+    padding: 5px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    background: white;
+  }
+  .check-action:hover { color: var(--maroon); border-color: var(--maroon); }
+  .check-item.done .check-action {
+    color: var(--ok);
+    border-color: transparent;
+    background: transparent;
+  }
+
+  /* Toggle */
+  .toggle {
+    display: inline-flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+  }
+  .toggle .tr {
+    width: 36px; height: 20px;
+    background: var(--border-strong);
+    border-radius: 999px;
+    position: relative;
+    transition: background .15s;
+  }
+  .toggle .tr::after {
+    content: "";
+    position: absolute;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px; left: 2px;
+    transition: left .15s;
+  }
+  .toggle.on .tr { background: var(--maroon); }
+  .toggle.on .tr::after { left: 18px; }
+  .toggle-label { font-size: 13px; color: var(--ink-2); }
+
+  /* Final submit zone */
+  .submit-zone {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 20px 24px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .submit-zone .msg {
+    flex: 1;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .submit-zone .msg strong { color: var(--ink); }
+
+  /* Required legend */
+  .req-legend {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: 12px;
+  }
+  .req-legend .req {
+    color: var(--cibc-red);
+    margin-right: 3px;
+  }
+
+</style>
+</head>
+<body class="side-collapsed">
+
+<aside class="app-rail" aria-label="Primary navigation">
+  <div class="app-rail-top">
+    <button class="app-rail-toggle" type="button" aria-label="Expand navigation" aria-expanded="false">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+    </button>
+    <div class="app-rail-title">BOA Menu</div>
+  </div>
+  <ul class="app-rail-nav">
+    <li>
+      <a class="app-rail-link active" href="#" data-go="home" title="Home">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7.5L8 3l5.5 4.5"/><path d="M4.5 7v6h7V7"/></svg>
+        <span class="app-rail-label">Home</span>
+      </a>
+    </li>
+    <li>
+      <a class="app-rail-link" href="#" data-go="list" title="View/Edit Use Cases">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h10v10H3z"/><path d="M5.5 6h5M5.5 8h5M5.5 10h3"/></svg>
+        <span class="app-rail-label">View/Edit Use Cases</span>
+        <span class="app-rail-count">142</span>
+      </a>
+    </li>
+    <li>
+      <a class="app-rail-link" href="#" data-go="new" title="New Use Case">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+        <span class="app-rail-label">New Use Case</span>
+      </a>
+    </li>
+  </ul>
+  <div class="app-rail-foot">
+    <a class="app-rail-link" href="#" title="Recycle Bin">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M6 4V2.5h4V4M5 6v7M8 6v7M11 6v7"/></svg>
+      <span class="app-rail-label">Recycle Bin</span>
+    </a>
+    <a class="app-rail-link" href="#" title="Help">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 11v.1M6.5 6a1.5 1.5 0 113 0c0 1-1.5 1.5-1.5 2.5"/></svg>
+      <span class="app-rail-label">Help</span>
+    </a>
+  </div>
+</aside>
+
+<div id="home" class="screen active">
+
+  <header class="header">
+    <div class="header-left">
+      <span class="header-cibc">CIBC</span>
+      <span class="header-divider"></span>
+      <span class="header-app">Enterprise AI Hub</span>
+    </div>
+    <div class="header-title">Business Opportunity Assessment</div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="av">OH</div>
+        <span>Welcome, Owen</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="landing-page" aria-label="BOA landing page">
+    <div class="landing-actions">
+      <button class="landing-action primary" type="button" data-go="new">New Intake</button>
+      <button class="landing-action" type="button" data-go="list">View/Edit Use Cases</button>
+      <button class="landing-action idle" type="button">Use Case Tracker</button>
+    </div>
+  </main>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!--               SCREEN 1: USE CASE LIST (MAIN)                   -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div id="list" class="screen">
+
+  <header class="header">
+    <div class="header-left">
+      <span class="header-cibc">CIBC</span>
+      <span class="header-divider"></span>
+      <span class="header-app">Enterprise AI Hub</span>
+    </div>
+    <div class="header-title">Business Opportunity Assessment</div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="av">OH</div>
+        <span>Welcome, Owen</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <div class="page-title-row">
+      <div>
+        <div class="page-title">
+          View/Edit Use Cases
+          <span class="page-title-count">142 use cases</span>
+        </div>
+        <div class="page-sub">All AI and analytics use cases across CIBC. Click a row to view or edit.</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary">
+          <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v9M4.5 7L8 10.5 11.5 7M2 14h12"/></svg>
+          Export to Excel
+        </button>
+        <button class="btn btn-primary" data-go="new">
+          <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+          New Use Case
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter row -->
+    <div class="filter-card">
+      <div class="filter-field">
+        <div class="filter-label">Search</div>
+        <input class="ctrl" type="text" placeholder="UCID, name, owner…" />
+      </div>
+      <div class="filter-field">
+        <div class="filter-label">Status</div>
+        <select class="ctrl">
+          <option>All Statuses</option>
+          <option>Rationale</option><option>Data Prep</option><option>Development</option>
+          <option>Testing</option><option>Deployment</option><option>Monitoring</option>
+          <option>Decommissioning</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <div class="filter-label">SBU</div>
+        <select class="ctrl">
+          <option>All SBUs</option>
+          <option>PBB</option><option>Capital Markets</option><option>Wealth</option>
+          <option>Commercial</option><option>Direct Banking</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <div class="filter-label">Fiscal Year</div>
+        <select class="ctrl"><option>F26</option><option>F25</option><option>F24</option></select>
+      </div>
+      <div class="filter-field">
+        <div class="filter-label">Owner</div>
+        <select class="ctrl"><option>All Owners</option></select>
+      </div>
+      <button class="reset-btn">Reset</button>
+    </div>
+
+    <!-- Gallery -->
+    <div class="gallery">
+      <div class="infinite-table" aria-label="Scrollable use case list">
+      <table class="uc">
+        <thead>
+          <tr>
+            <th>UCID</th>
+            <th>Use Case Name</th>
+            <th>SBU</th>
+            <th>AI Solution Owner</th>
+            <th>Status</th>
+            <th>FY</th>
+            <th>Realized Value</th>
+            <th>Last Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="ucid">UC-0142</td>
+            <td class="name">Credit Risk Churn Predictor</td>
+            <td>PBB</td>
+            <td>Jasmine Lee</td>
+            <td><span class="status s-dev"><span class="dot"></span>Development</span></td>
+            <td>F26</td>
+            <td>$1.8M</td>
+            <td>2 days ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0141</td>
+            <td class="name">Small Business Lending — Next Best Action</td>
+            <td>PBB</td>
+            <td>Aanya Roy</td>
+            <td><span class="status s-test"><span class="dot"></span>Testing</span></td>
+            <td>F26</td>
+            <td>$0.6M</td>
+            <td>5 days ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0140</td>
+            <td class="name">Mortgage Default Early Warning</td>
+            <td>PBB</td>
+            <td>Daniel Mendoza</td>
+            <td><span class="status s-deploy"><span class="dot"></span>Deployment</span></td>
+            <td>F26</td>
+            <td>$4.2M</td>
+            <td>1 wk ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0139</td>
+            <td class="name">Contact Centre Sentiment Triage</td>
+            <td>Direct Banking</td>
+            <td>Priya Kapoor</td>
+            <td><span class="status s-monitor"><span class="dot"></span>Monitoring</span></td>
+            <td>F26</td>
+            <td>$3.1M</td>
+            <td>1 wk ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0138</td>
+            <td class="name">Wealth Client Segmentation v3</td>
+            <td>Wealth</td>
+            <td>Marcus Okafor</td>
+            <td><span class="status s-data"><span class="dot"></span>Data Prep</span></td>
+            <td>F26</td>
+            <td>—</td>
+            <td>2 wks ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0137</td>
+            <td class="name">FX Trade Surveillance Anomaly Detection</td>
+            <td>Capital Markets</td>
+            <td>Sara Hassan</td>
+            <td><span class="status s-dev"><span class="dot"></span>Development</span></td>
+            <td>F26</td>
+            <td>$0.9M</td>
+            <td>2 wks ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0136</td>
+            <td class="name">Commercial Credit Document Extraction</td>
+            <td>Commercial</td>
+            <td>Thomas Nguyen</td>
+            <td><span class="status s-test"><span class="dot"></span>Testing</span></td>
+            <td>F26</td>
+            <td>$2.4M</td>
+            <td>3 wks ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0135</td>
+            <td class="name">Fraud Detection v3 — Card-Not-Present</td>
+            <td>PBB</td>
+            <td>Léa Fortier</td>
+            <td><span class="status s-monitor"><span class="dot"></span>Monitoring</span></td>
+            <td>F25</td>
+            <td>$8.7M</td>
+            <td>1 mo ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0134</td>
+            <td class="name">Retail Branch Staffing Forecast</td>
+            <td>PBB</td>
+            <td>Ravi Venkat</td>
+            <td><span class="status s-rationale"><span class="dot"></span>Rationale</span></td>
+            <td>F26</td>
+            <td>—</td>
+            <td>1 mo ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="ucid">UC-0133</td>
+            <td class="name">AML Transaction Monitoring — Tier 2</td>
+            <td>Capital Markets</td>
+            <td>Kim Baptiste</td>
+            <td><span class="status s-decom"><span class="dot"></span>Decommissioning</span></td>
+            <td>F25</td>
+            <td>$2.1M</td>
+            <td>2 mo ago</td>
+            <td><button class="view-btn">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="gallery-footer">
+        <span class="repo-count">Showing 10 of 142</span>
+        <span class="scroll-status"><span class="scroll-dot"></span>Scroll to load more</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!--               SCREEN 2: DETAIL PAGE                            -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div id="detail" class="screen">
+
+  <header class="header">
+    <div class="header-left">
+      <span class="header-cibc">CIBC</span>
+      <span class="header-divider"></span>
+      <span class="header-app">Enterprise AI Hub</span>
+    </div>
+    <div class="header-title">Business Opportunity Assessment</div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="av">OH</div>
+        <span>Welcome, Owen</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Action bar (Submit | Main pattern from existing app) -->
+  <div class="detail-actionbar">
+    <button class="btn btn-ghost" data-go="list">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>
+      Back to List
+    </button>
+    <div class="crumb">
+      Repository <span style="color:#9A9A9A;margin:0 6px;">/</span>
+      <span class="current">UC-0142 · Credit Risk Churn Predictor</span>
+    </div>
+    <div class="right">
+      <span class="save-note">Draft saved <span class="ok">✓</span> 14:32</span>
+      <button class="btn btn-secondary">Save Draft</button>
+      <button class="btn btn-primary">Submit Assessment</button>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- Side rail -->
+    <aside class="rail">
+      <div class="rail-head">
+        <div class="rail-ucid">UC-0142 · F26</div>
+        <div class="rail-name">Credit Risk Churn Predictor</div>
+        <div class="rail-status"><span class="status s-dev"><span class="dot"></span>Development</span></div>
+      </div>
+      <ul class="rail-nav">
+        <li><a href="#s-info" class="active">Use Case Info</a></li>
+        <li><a href="#s-contacts">Contacts</a></li>
+        <li><a href="#s-value">Value <span class="num">3</span></a></li>
+        <li><a href="#s-funds">Funds</a></li>
+        <li><a href="#s-governance">Governance <span class="num">3/5</span></a></li>
+        <li><a href="#s-technical">Technical Review</a></li>
+        <li><a href="#s-updates">Monthly Update</a></li>
+      </ul>
+      <div class="rail-foot">
+        Editable by <strong>Jasmine Lee</strong><br/>
+        <a href="#">Request edit access →</a>
+      </div>
+    </aside>
+
+    <!-- Main column -->
+    <div class="detail-content">
+
+      <!-- USE CASE INFO -->
+      <section id="s-info" class="section active">
+        <div class="section-head">
+          <div class="section-title">Use Case Info</div>
+          <span class="req-legend"><span class="req">*</span>Required</span>
+        </div>
+
+        <!-- Lightweight status stepper -->
+        <div class="stepper">
+          <div class="step done"><span class="n">1</span>Rationale</div>
+          <div class="line done"></div>
+          <div class="step done"><span class="n">2</span>Data Prep</div>
+          <div class="line done"></div>
+          <div class="step current"><span class="n">3</span>Development</div>
+          <div class="line"></div>
+          <div class="step"><span class="n">4</span>Testing</div>
+          <div class="line"></div>
+          <div class="step"><span class="n">5</span>Deployment</div>
+          <div class="line"></div>
+          <div class="step"><span class="n">6</span>Monitoring</div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label><span class="req">*</span>Use Case Name</label>
+            <input type="text" value="Credit Risk Churn Predictor" />
+          </div>
+          <div class="field full">
+            <label>Problem Statement</label>
+            <textarea>Retail credit attrition in PBB has trended up 2.4pp YoY. Current rule-based churn scoring relies on lagging indicators and produces high false-positive volume in retention campaigns. Need a model that uses leading behavioural signals to identify at-risk clients earlier.</textarea>
+          </div>
+          <div class="field full">
+            <label>AI Solution Description</label>
+            <textarea>Gradient-boosted classifier on 90-day client activity windows, scoring weekly. Features include transaction velocity, channel-mix shift, branch visits, and complaint signals. Outputs per-client churn probability with top contributing features.</textarea>
+          </div>
+          <div class="field">
+            <label>Type of Use Case</label>
+            <select><option>AI — Predictive</option><option>AI — Generative</option><option>Non-AI Analytics</option></select>
+          </div>
+          <div class="field">
+            <label>Current Status</label>
+            <select><option>Development</option><option>Testing</option><option>Deployment</option></select>
+          </div>
+          <div class="field">
+            <label><span class="req">*</span>SBU</label>
+            <select><option>PBB — Personal Banking</option></select>
+          </div>
+          <div class="field">
+            <label>LOB / Sub-LOB</label>
+            <select><option>Everyday Banking — Credit Cards</option></select>
+          </div>
+          <div class="field full">
+            <label>Other LOBs Impacted</label>
+            <input type="text" value="Contact Centre, Client Experience" />
+          </div>
+          <div class="field">
+            <label>Completion Date (target)</label>
+            <input type="date" value="2026-09-30" />
+          </div>
+          <div class="field">
+            <label>Output Deliverable</label>
+            <select><option>Real-time scoring</option><option>Dataset / Extract</option><option>Report</option><option>Dashboard</option></select>
+          </div>
+          <div class="field">
+            <label>Refresh Frequency</label>
+            <select><option>Weekly</option><option>Daily</option><option>Monthly</option></select>
+          </div>
+          <div class="field">
+            <label>Prerequisite for Other Initiatives</label>
+            <select><option>Yes</option><option>No</option></select>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACTS -->
+      <section id="s-contacts" class="section">
+        <div class="section-head"><div class="section-title">Contacts</div></div>
+        <div class="form-grid">
+          <div class="field">
+            <label><span class="req">*</span>AI Solution Owner</label>
+            <div class="person">
+              <div class="av">JL</div>
+              <span>Jasmine Lee</span>
+              <span class="em">jasmine.lee@cibc.com</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>AI Enablement Owner</label>
+            <div class="person">
+              <div class="av">OH</div>
+              <span>Owen Huang</span>
+              <span class="em">owen.huang@cibc.com</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Executive Sponsor</label>
+            <div class="person">
+              <div class="av">ÖA</div>
+              <span>Özge Akman</span>
+              <span class="em">VP, AAI</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Primary Business Contact</label>
+            <div class="person">
+              <div class="av">MC</div>
+              <span>Marie Chen</span>
+              <span class="em">Director, Retention</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Data Contact</label>
+            <div class="person">
+              <div class="av">RP</div>
+              <span>Rohan Patel</span>
+              <span class="em">Sr. Data Engineer</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>AI Model Developer</label>
+            <div class="person empty">Assign a developer</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUE -->
+      <section id="s-value" class="section">
+        <div class="section-head">
+          <div class="section-title">Value</div>
+          <span class="section-progress">3 entries</span>
+        </div>
+
+        <div class="value-summary">
+          <div class="vsum">
+            <div class="vsum-label">Estimated Benefit</div>
+            <div class="vsum-value">$3.6M</div>
+          </div>
+          <div class="vsum">
+            <div class="vsum-label">Realized · F26 YTD</div>
+            <div class="vsum-value accent">$1.8M</div>
+          </div>
+          <div class="vsum">
+            <div class="vsum-label">Investment Spend</div>
+            <div class="vsum-value">$0.4M</div>
+          </div>
+        </div>
+
+        <div class="vtable">
+          <table>
+            <thead>
+              <tr>
+                <th>FY · Q</th><th>Driver</th><th>Value</th><th>Frequency</th><th>Signoff</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>F26 · Q1</td>
+                <td>Cost Reduction</td>
+                <td class="vamt">$0.9M</td>
+                <td>Quarterly</td>
+                <td><span class="status s-deploy"><span class="dot"></span>Signed off</span></td>
+                <td class="row-act"><button>Edit</button></td>
+              </tr>
+              <tr>
+                <td>F26 · Q2</td>
+                <td>Cost Reduction</td>
+                <td class="vamt">$0.9M</td>
+                <td>Quarterly</td>
+                <td><span class="status s-test"><span class="dot"></span>Pending</span></td>
+                <td class="row-act"><button>Edit</button></td>
+              </tr>
+              <tr>
+                <td>F26 · Q3</td>
+                <td>Revenue Enhancement</td>
+                <td class="vamt zero">— TBD</td>
+                <td>Quarterly</td>
+                <td><span class="status"><span class="dot"></span>Not started</span></td>
+                <td class="row-act"><button>Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="add-row">
+            <button>+ Add value entry</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FUNDS -->
+      <section id="s-funds" class="section">
+        <div class="section-head"><div class="section-title">Funds</div></div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Funding Available</label>
+            <select><option>Yes — Business Case Funded</option><option>Partial</option><option>No</option></select>
+          </div>
+          <div class="field">
+            <label>Tracked by Finance Partner</label>
+            <select><option>Yes</option><option>No</option></select>
+          </div>
+          <div class="field">
+            <label>Estimated Monetary Benefit</label>
+            <input type="text" value="$3.6M" />
+          </div>
+          <div class="field">
+            <label>Estimated Benefit Type</label>
+            <select><option>Cost Reduction</option><option>Cost/Risk Avoidance</option><option>Revenue Enhancement</option><option>Capacity Creation</option><option>Client/Employee Experience</option><option>Balance Sheet</option></select>
+          </div>
+          <div class="field">
+            <label>Actualized Monetary Benefit</label>
+            <input type="text" value="$1.8M" />
+          </div>
+          <div class="field">
+            <label>Estimated Other Benefit</label>
+            <input type="text" value="~3,200 hrs/yr saved" />
+          </div>
+        </div>
+      </section>
+
+      <!-- GOVERNANCE -->
+      <section id="s-governance" class="section">
+        <div class="section-head">
+          <div class="section-title">Governance</div>
+          <span class="section-progress">
+            3 of 5 complete
+            <div class="progress-bar"><div class="fill" style="width:60%"></div></div>
+          </span>
+        </div>
+        <div class="checklist">
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">AIRAP — AI Risk Assessment</div>
+              <div class="check-meta">Approved · AIRAP-2025-1184 · <a href="#">View outcome</a></div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">CIRA — Compliance & Information Risk</div>
+              <div class="check-meta">Approved · CIRA-2025-0742 · <a href="#">View report</a></div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Enterprise AI Inventory</div>
+              <div class="check-meta">Registered · MAP-4421</div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Model Validation Approval</div>
+              <div class="check-meta">In review — expected by F26 W14</div>
+            </div>
+            <button class="check-action">Mark complete</button>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Technology Triage</div>
+              <div class="check-meta">Submit triage number once environment is confirmed</div>
+            </div>
+            <button class="check-action">Mark complete</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TECHNICAL REVIEW -->
+      <section id="s-technical" class="section">
+        <div class="section-head"><div class="section-title">Technical Review</div></div>
+        <div class="checklist">
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Code Review</div>
+              <div class="check-meta">Completed by Tech Lead · 2026-04-22</div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Algorithm Review</div>
+              <div class="check-meta">Reviewed by Sr. DS</div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item done">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Folder Structure adheres to standards</div>
+              <div class="check-meta">Verified against AAI repo template v3.2</div>
+            </div>
+            <button class="check-action">Completed</button>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-name">Model Monitoring in place</div>
+              <div class="check-meta">PSI + decile-rank dashboards pending</div>
+            </div>
+            <button class="check-action">Mark complete</button>
+          </div>
+        </div>
+        <div class="field full" style="margin-top:16px;">
+          <label>Performance Metrics</label>
+          <textarea>Hold-out AUC 0.842 · KS 0.51 · Calibration error 0.04. Top decile capture 38% of 90-day churn events vs. 19% in legacy rule set.</textarea>
+        </div>
+      </section>
+
+      <!-- MONTHLY UPDATE -->
+      <section id="s-updates" class="section">
+        <div class="section-head"><div class="section-title">Monthly Executive Update</div></div>
+        <div class="form-grid">
+          <div class="field full">
+            <label>Update for May 2026</label>
+            <textarea>Model is production-ready in shadow mode. Awaiting MRM sign-off. Pilot with PBB Retention launches F26 Q2 W6 on 5% of cardholder population.</textarea>
+            <div class="field-hint">This update appears in the PDF report and the monthly Teams digest.</div>
+          </div>
+          <div class="field full">
+            <div class="toggle on">
+              <div class="tr"></div>
+              <span class="toggle-label">Notify Executive Sponsor and AAI leadership via MS Teams when submitted</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Final submit -->
+      <div class="submit-zone">
+        <div class="msg">
+          <strong>Save Draft</strong> keeps your changes without notifying anyone.
+          <strong>Submit Assessment</strong> publishes the latest values and triggers Power Automate flows (Excel refresh, Power BI, Teams digest).
+        </div>
+        <button class="btn btn-secondary">Save Draft</button>
+        <button class="btn btn-primary">Submit Assessment</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!--               SCREEN 4: CREATE NEW USE CASE                    -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div id="new" class="screen">
+
+  <header class="header">
+    <div class="header-left">
+      <span class="header-cibc">CIBC</span>
+      <span class="header-divider"></span>
+      <span class="header-app">Enterprise AI Hub</span>
+    </div>
+    <div class="header-title">Business Opportunity Assessment</div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="av">OH</div>
+        <span>Welcome, Owen</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Action bar -->
+  <div class="detail-actionbar">
+    <button class="btn btn-ghost" data-go="list">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>
+      Cancel
+    </button>
+    <div class="crumb">
+      Repository <span style="color:#9A9A9A;margin:0 6px;">/</span>
+      <span class="current">New Use Case</span>
+    </div>
+    <div class="right">
+      <span class="save-note">UCID will be assigned on save</span>
+      <button class="btn btn-secondary">Save Draft</button>
+      <button class="btn btn-primary">Create Use Case</button>
+    </div>
+  </div>
+
+  <!-- Full-width single-column layout (no side rail — nothing to navigate yet) -->
+  <div class="page" style="max-width: 920px;">
+
+    <section class="section active" style="margin: 24px 0;">
+      <div class="section-head">
+        <div class="section-title">Create New Use Case</div>
+        <span class="req-legend"><span class="req">*</span>Required</span>
+      </div>
+
+      <div style="background:var(--maroon-light); border:1px solid #E5C9D0; border-radius:3px; padding:10px 14px; margin-bottom:20px; font-size:12px; color:var(--ink-2);">
+        <strong style="color:var(--maroon);">Step 1 of 2.</strong>
+        Complete the basics below to register the use case. After saving, you'll be able to fill in Contacts, Value, Funds, Governance, and other sections from the detail page.
+      </div>
+
+      <div class="form-grid">
+        <div class="field full">
+          <label><span class="req">*</span>Use Case Name</label>
+          <input type="text" placeholder="e.g. Credit Risk Churn Predictor" />
+          <div class="field-hint">A short, descriptive name. UCID is assigned automatically.</div>
+        </div>
+
+        <div class="field full">
+          <label><span class="req">*</span>Problem Statement</label>
+          <textarea placeholder="What business problem are you trying to solve? What is the current state?"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>AI Solution Description</label>
+          <textarea placeholder="Briefly describe the proposed AI / analytics solution."></textarea>
+        </div>
+
+        <div class="field">
+          <label><span class="req">*</span>Type of Use Case</label>
+          <select>
+            <option value="">Select a type…</option>
+            <option>AI — Predictive</option>
+            <option>AI — Generative</option>
+            <option>Non-AI Analytics</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label><span class="req">*</span>Initial Status</label>
+          <select>
+            <option>Rationale</option>
+            <option>Data Prep</option>
+            <option>Development</option>
+          </select>
+          <div class="field-hint">New use cases typically start in Rationale.</div>
+        </div>
+
+        <div class="field">
+          <label><span class="req">*</span>SBU</label>
+          <select>
+            <option value="">Select an SBU…</option>
+            <option>PBB — Personal Banking</option>
+            <option>Capital Markets</option>
+            <option>Wealth</option>
+            <option>Commercial</option>
+            <option>Direct Banking</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>LOB / Sub-LOB</label>
+          <select>
+            <option value="">Select after SBU…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label><span class="req">*</span>AI Solution Owner</label>
+          <div class="person empty">Assign an owner</div>
+        </div>
+
+        <div class="field">
+          <label>Fiscal Year</label>
+          <select>
+            <option>F26</option>
+            <option>F27</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Target Completion Date</label>
+          <input type="date" />
+        </div>
+
+        <div class="field">
+          <label>Refresh Frequency</label>
+          <select>
+            <option value="">Select…</option>
+            <option>Daily</option>
+            <option>Weekly</option>
+            <option>Monthly</option>
+            <option>Quarterly</option>
+            <option>One-time</option>
+            <option>Real-time</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="submit-zone" style="margin: 0 0 24px;">
+      <div class="msg">
+        <strong>Save Draft</strong> keeps your entry private until you're ready.
+        <strong>Create Use Case</strong> registers it in the repository and opens the full detail page so you can complete the remaining sections.
+      </div>
+      <button class="btn btn-secondary" data-go="list">Cancel</button>
+      <button class="btn btn-primary" data-go="detail">Create Use Case</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Screen switching used by the in-app navigation
+  function goToScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.app-rail-link[data-go]').forEach(l => {
+      const screen = l.dataset.go === 'detail' ? 'list' : l.dataset.go;
+      const active = id === l.dataset.go || (id === 'detail' && screen === 'list');
+      l.classList.toggle('active', active);
+    });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  const appRailToggle = document.querySelector('.app-rail-toggle');
+  appRailToggle?.addEventListener('click', () => {
+    const collapsed = document.body.classList.toggle('side-collapsed');
+    appRailToggle.setAttribute('aria-expanded', String(!collapsed));
+    appRailToggle.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+  });
+
+  // Navigation links + buttons inside the app
+  document.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToScreen(el.dataset.go);
+    });
+  });
+
+  // Detail page: section switching (matches Power Apps pattern —
+  // rail click shows only that section, mirrors UpdateContext({sectionFocus:...}))
+  const railLinks = document.querySelectorAll('.rail-nav a');
+  const sections  = document.querySelectorAll('.section');
+
+  function showSection(id) {
+    sections.forEach(s => s.classList.toggle('active', s.id === id));
+    railLinks.forEach(l => {
+      const target = (l.getAttribute('href') || '').replace('#','');
+      l.classList.toggle('active', target === id);
+    });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  railLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = (a.getAttribute('href') || '').replace('#','');
+      if (id) showSection(id);
+    });
+  });
+
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => t.classList.toggle('on'));
+  });
+  document.querySelectorAll('.check-item').forEach(item => {
+    item.querySelector('.check-action')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      item.classList.toggle('done');
+    });
+  });
+
+  // ── Open Use Case detail from list (row click or View button) ──
+  const repoTotal = 142;
+  const repoBatchSize = 10;
+  const repoScroll = document.querySelector('#list .infinite-table');
+  const repoBody = document.querySelector('#list .uc tbody');
+  const repoCount = document.querySelector('#list .repo-count');
+  const repoStatus = document.querySelector('#list .scroll-status');
+  const repoSeedRows = repoBody ? Array.from(repoBody.children).map(row => row.cloneNode(true)) : [];
+
+  function updateRepoCount() {
+    const loaded = repoBody?.children.length || 0;
+    if (repoCount) repoCount.textContent = `Showing ${Math.min(loaded, repoTotal)} of ${repoTotal}`;
+    if (repoStatus && loaded >= repoTotal) repoStatus.textContent = 'All use cases loaded';
+  }
+
+  function loadMoreUseCases() {
+    if (!repoBody || !repoSeedRows.length || repoBody.children.length >= repoTotal) return;
+    const loaded = repoBody.children.length;
+    const fragment = document.createDocumentFragment();
+    const nextCount = Math.min(repoBatchSize, repoTotal - loaded);
+
+    for (let i = 0; i < nextCount; i += 1) {
+      const row = repoSeedRows[(loaded + i) % repoSeedRows.length].cloneNode(true);
+      const ucid = row.querySelector('.ucid');
+      if (ucid) ucid.textContent = `UC-${String(repoTotal - loaded - i).padStart(4, '0')}`;
+      fragment.appendChild(row);
+    }
+
+    repoBody.appendChild(fragment);
+    updateRepoCount();
+  }
+
+  repoScroll?.addEventListener('scroll', () => {
+    const remaining = repoScroll.scrollHeight - repoScroll.scrollTop - repoScroll.clientHeight;
+    if (remaining < 48) loadMoreUseCases();
+  });
+
+  updateRepoCount();
+
+  repoBody?.addEventListener('click', (e) => {
+    const row = e.target.closest('tr');
+    if (row) {
+      goToScreen('detail');
+      showSection('s-info');
+    }
+  });
+</script>
+
+</body>
+</html>
