@@ -82,6 +82,9 @@ and tuning its layout:
 - **`16-srcdetail-dataverse-build.md`** — build srcDetail forward from the
   Use Case Info container on Dataverse, with every command tagged by where
   it lives (OnStart / Formulas / OnVisible / Inline).
+- **`17-srcdetail-info-tab-dataverse.md`** — the **fully-specified**
+  Use Case Info tab on Dataverse: every position/dimension for the title,
+  stepper, and `frmInfo` Edit form (all 8 fields, card-by-card, Save/Cancel).
 
 ## Order to ship
 
