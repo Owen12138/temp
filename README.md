@@ -72,6 +72,10 @@ and tuning its layout:
 - **`13-status-stepper-dataverse-fix.md`** — fix the `srcDetail` status
   stepper after moving to Dataverse (the `Project Status` option set +
   label mismatch); adds a `DVStatus` bridge field to `colStatus`.
+- **`14-srcdetail-dataverse-guide.md`** — migrate the whole `srcDetail`
+  screen to Dataverse with Edit forms: Info form rebind, the
+  section-form recipe for Contacts/Funds/Gov/Tech/Updates (now Projects
+  fields), and the Value child table (gallery + form).
 
 ## Order to ship
 

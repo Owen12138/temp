@@ -975,6 +975,12 @@ pairs. The form auto-generates one data card per field, gives us
 built-in Required/validation and an explicit Save, and reflows its two
 columns responsively when the rail toggles.
 
+> **On Dataverse?** Rebind this form (and the rest of `srcDetail`) to the
+> `Projects` table — the Status/Type cards become real choice combo boxes
+> (no more `colStatus` code/label `LookUp`), and Contacts/Funds/Gov/Tech
+> become their own Projects-bound forms. See
+> [`14-srcdetail-dataverse-guide.md`](14-srcdetail-dataverse-guide.md).
+
 > **Behaviour change vs. live-patch:** with a form, edits live inside
 > the form until you press **Save** (`SubmitForm`). So the rail-head
 > pill and the status stepper update *on save*, not on every
