@@ -74,6 +74,27 @@ no `Value()` needed, no hidden label).
 > `Value(lblCurrentStatusIdx.Text)`. It works, but the named formula is
 > cleaner. Pick one; the rest of this guide assumes `currentStatusIdx`.
 
+### Your complete `App.Formulas` (copy-paste)
+
+After the Dataverse migration, `App.Formulas` contains **only these two**
+named formulas — the old collection ones (`filteredUseCases`, `ucGovRows`,
+`ucTechRows`, `govDoneCount`, …) are gone (srcList filters inline;
+governance is Projects fields):
+
+```powerfx
+// Value rows for the selected use case (srcDetail Value section)
+ucValueRows = Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID');
+
+// Active step (1–7) for the status stepper; 0 when blank/unknown
+currentStatusIdx = Coalesce(LookUp(colStatus, DVStatus = Text(selectedUC.'Project Status'), Order), 0);
+```
+
+> **An empty `App.Formulas` is fine if you're only on srcList** — srcList
+> needs none (it filters inline). Add `ucValueRows` when you build the
+> Value section, and `currentStatusIdx` when you wire the stepper. If you
+> kept the hidden `lblCurrentStatusIdx` label instead of the named formula,
+> drop `currentStatusIdx` here — only `ucValueRows` remains.
+
 ### SBU edit-picker list — **[OnVisible]** *(only if you use the SBU→LOB cascade in Step 2)*
 ```powerfx
 // srcDetail.OnVisible
