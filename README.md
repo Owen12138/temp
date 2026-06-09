@@ -79,6 +79,9 @@ and tuning its layout:
 - **`15-srclist-columns-update.md`** — change the srcList gallery to the
   10-column set + View button (adds Est. Completion, AI Enablement Owner,
   Executive Sponsor; drops FY; Realized Value (YTD) left as a placeholder).
+- **`16-srcdetail-dataverse-build.md`** — build srcDetail forward from the
+  Use Case Info container on Dataverse, with every command tagged by where
+  it lives (OnStart / Formulas / OnVisible / Inline).
 
 ## Order to ship
 
