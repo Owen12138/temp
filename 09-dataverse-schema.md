@@ -163,6 +163,10 @@ edits.
 
 ## 3. Table: Value
 
+> **Data-source name:** the table surfaces in Power Apps as **`Values`**
+> (plural). Reference it as `Values` in formulas (e.g. `Filter(Values, …)`)
+> — being plural, it does **not** collide with the `Value()` function.
+
 **Purpose:** Child table for **recurring project value reporting** —
 one row per reporting period (e.g. per fiscal quarter/month) per project.
 

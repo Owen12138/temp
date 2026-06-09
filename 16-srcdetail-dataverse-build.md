@@ -51,7 +51,7 @@ before a row is picked.
 ### Value rollup — **[Formulas]**
 Click `App` → **Formulas**:
 ```powerfx
-ucValueRows = Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID');
+ucValueRows = Filter(Values, Project.'Use Case ID' = selectedUC.'Use Case ID');
 ```
 *Why Formulas:* it's **derived** from `selectedUC`, **reactive**, **reused**
 by the Value tiles *and* the Value gallery, and references **no controls**.
@@ -83,7 +83,7 @@ governance is Projects fields):
 
 ```powerfx
 // Value rows for the selected use case (srcDetail Value section)
-ucValueRows = Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID');
+ucValueRows = Filter(Values, Project.'Use Case ID' = selectedUC.'Use Case ID');
 
 // Active step (1–7) for the status stepper; 0 when blank/unknown
 currentStatusIdx = Coalesce(LookUp(colStatus, DVStatus = Text(selectedUC.'Project Status'), Order), 0);
@@ -177,7 +177,7 @@ in OnStart/Formulas/OnVisible — they're all control-bound.
   `[Formulas]` `ucValueRows`.
 - **Gallery — [Inline]:** `galValueRows.Items = ucValueRows`; row `Text`
   bindings to `ThisItem.'…'` (wrap choice columns in `Text(...)`).
-- **Add/Edit form `frmValue` — [Inline]:** `DataSource = 'Value'`;
+- **Add/Edit form `frmValue` — [Inline]:** `DataSource = Values`;
   `NewForm`/`EditForm`, `SubmitForm(frmValue)`, and the Project lookup
   card `Update = selectedUC` on insert — see [`14` Part 3](14-srcdetail-dataverse-guide.md).
 
@@ -189,7 +189,7 @@ in OnStart/Formulas/OnVisible — they're all control-bound.
 |---|---|---|
 | `colStatus` (+`DVStatus`) | **[OnStart]** | static, app-wide, once |
 | `Set(selectedUC, Defaults(Projects))` | **[OnStart]** | typed blank, app-wide |
-| `ucValueRows = Filter('Value', …)` | **[Formulas]** | derived, reactive, reused, no controls |
+| `ucValueRows = Filter(Values, …)` | **[Formulas]** | derived, reactive, reused, no controls |
 | `currentStatusIdx = Coalesce(LookUp(…))` | **[Formulas]** | derived, reused by stepper, no controls |
 | `colSBUEdit` (cascade SBU list) | **[OnVisible]** | Dataverse query, defer + run once |
 | `ddLOB2.Items` (depends on `ddSBU2`) | **[Inline]** | references a control |

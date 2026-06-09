@@ -32,10 +32,10 @@ before writing any formula:
 
 1. **Table name as it appears in Studio.** When you add a Dataverse
    table as a data source, Studio shows it by display name (`Projects`,
-   `Business Hierarchy`, `Value`). The table named **`Value`** is a
-   problem: `Value` is also a built-in Power Fx function. Reference it
-   quoted as `'Value'` everywhere, and if Studio renamed it on import
-   (e.g. `Values`), use whatever name shows in **Data** in the tree.
+   `Business Hierarchy`, `Values`). The value table here is **`Values`**
+   (plural) — a distinct name, so it does **not** collide with the
+   `Value()` function and can be referenced unquoted (`Filter(Values, …)`).
+   Always use whatever name shows under **Data** in the tree.
 2. **The lookup column name** on Projects that points at Business
    Hierarchy. The schema calls the stored key `Business Hierarchy Key`,
    but the *lookup column* may be named `Business Hierarchy` (the
@@ -53,7 +53,7 @@ the left and you substitute the **Dataverse display name** on the right:
 | `Owner` | `AI Solution Owner Name` | Text | `ThisItem.'AI Solution Owner Name'` |
 | `Status` | `Project Status` | **Choice** | `ThisItem.'Project Status'` (no `.Value` — see note) |
 | `FY` | `Project Completion Fiscal Year` | Text | `ThisItem.'Project Completion Fiscal Year'` |
-| `RealizedValue` | *(none on Projects)* — rolled up from `'Value'` | — | see [Part 2C](#part-2c--decide-how-realized-value-is-computed) |
+| `RealizedValue` | *(none on Projects)* — rolled up from `Values` | — | see [Part 2C](#part-2c--decide-how-realized-value-is-computed) |
 | `EstimatedValue` | `Estimated Monetary Benefit` | Currency | `ThisItem.'Estimated Monetary Benefit'` |
 | `LastUpdated` | `Modified On` (system column) | DateTime | `ThisItem.'Modified On'` |
 | `Type` | `Type of Use Case` | Choice | `ThisItem.'Type of Use Case'` (no `.Value`) |
@@ -165,7 +165,7 @@ Projects has no `RealizedValue`; it lives in the **Value** child table
 
 **Option A (recommended) — Dataverse rollup column.** In your solution,
 add a **Rollup column** on Projects, e.g. display name `Realized Value
-Total`, defined as `SUM` of related `'Value'`.`Realized Value`. Then the
+Total`, defined as `SUM` of related `Values`.`Realized Value`. Then the
 list reads one delegable field: `ThisItem.'Realized Value Total'`.
 *Trade-off:* rollups recalculate on a schedule (~hourly) / on demand, not
 instantly — fine for a list view.
@@ -556,12 +556,12 @@ data) — but only after `srcDetail`/`srcNew` no longer reference
 - **`srcDetail`** reads `selectedUC.Name`, `.UCID`, `.Status`, etc. and
   the Edit form `frmInfo` is bound to `colUseCases`. Repeat this rename
   pass there: rebind the form to `Projects`, update each card, and swap
-  the value/governance galleries to the `'Value'` table.
+  the value/governance galleries to the `Values` table.
 - **`srcNew`** insert flow: replace `Collect(colUseCases, …)` with
   `Patch(Projects, Defaults(Projects), {...})`, resolving the SBU/LOB
   pick to the Business Hierarchy lookup before submit.
 - **Value child galleries / rollups** on the detail screen bind to
-  `'Value'` filtered by the `Project` lookup.
+  `Values` filtered by the `Project` lookup.
 - Keep the [`03-formulas-reference.md` §N cheat sheet](03-formulas-reference.md)
   open — it lists the table find/replace map for the remaining screens.
 
@@ -582,7 +582,7 @@ data) — but only after `srcDetail`/`srcNew` no longer reference
 | Status filter returns zero rows | A label in `ddStatus.Items` doesn't match the Dataverse choice exactly | Copy labels verbatim from the choice definition (§5 of the schema doc). Watch for "Test and Validation" vs "Testing". |
 | Realized Value always "—" | Rollup column hasn't recalculated yet, or Option B relationship name is wrong | Trigger the rollup (or wait for its schedule). For Option B, confirm the relationship name after `ThisItem.` (often plural, e.g. `Values`). |
 | Blue underline on `galUseCases.Items` | A delegation warning. The Status `Text(...)` clause warns **by design**; the `in` operator would also warn | The Status warning is expected (Part 6). For search use `StartsWith` (Step 7b), not `in`. Raise the row limit to 2000 as a stopgap. |
-| `Value(...)` / `'Value'` errors in a formula | Table named `Value` collides with the `Value()` function | Always quote the table as `'Value'`; or rename the data source in **Data**. |
+| `Values` table not recognized in a formula | Data source not added, or wrong name | Add it via Data → Add data; reference it by the exact name under **Data** (`Values`). It's plural, so no `Value()` collision — no quoting needed. |
 | `selectedUC.<field>` errors on srcDetail | OnStart seed still uses collection field names | Set `Set(selectedUC, Defaults(Projects))` in OnStart (Part 2B). Full srcDetail migration is separate. |
 | "Last Updated" shows a huge number | `Modified On` is a DateTime, off by timezone, or record never saved | Expected for newly imported rows; `DateDiff` against `Today()` still works. Confirm you used `ThisItem.'Modified On'`. |
 | Count chip stuck at 500 | `CountRows(Projects)` hit the delegation cap | For large tables, cache the count in `App.OnStart` or accept the cap (Part 5, Step 14). |

@@ -135,8 +135,8 @@ differs.)
 ```
 
 > **Coming later:** this will sum the current fiscal year's `Realized
-> Value` from the `Value` child table, e.g.
-> `Sum(Filter('Value', Project.'Use Case ID' = ThisItem.'Use Case ID' && 'Fiscal Year' = <currentFY>), 'Realized Value')`.
+> Value` from the `Values` child table, e.g.
+> `Sum(Filter(Values, Project.'Use Case ID' = ThisItem.'Use Case ID' && 'Fiscal Year' = <currentFY>), 'Realized Value')`.
 > Leave it as `"—"` until that logic is decided.
 
 ---

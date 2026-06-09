@@ -43,11 +43,11 @@ dropdowns and code/label `LookUp`s from the collection build **go away.**
 
 The child-collection formulas don't apply anymore. Click `App` → **Formulas**:
 
-**Replace** the value rollup to query the Dataverse `Value` table by the
+**Replace** the value rollup to query the Dataverse `Values` table by the
 Project lookup:
 
 ```powerfx
-ucValueRows = Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID');
+ucValueRows = Filter(Values, Project.'Use Case ID' = selectedUC.'Use Case ID');
 ```
 
 **Delete** `ucGovRows`, `ucTechRows`, `govDoneCount`, `govTotalCount`,
@@ -55,9 +55,9 @@ ucValueRows = Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID');
 fields, not child rows. (If you still want a governance "progress" badge,
 see the optional note in Part 4.)
 
-> `'Value'` is quoted because a table literally named **Value** collides
-> with the `Value()` function. Use whatever name the table shows under
-> **Data** if Studio renamed it on import.
+> The table is **`Values`** (plural). Because that's a distinct name (not
+> the `Value()` function), you can reference it unquoted. Use whatever name
+> shows under **Data** in the tree if yours differs.
 
 ---
 
@@ -212,7 +212,7 @@ Replace the hand-built modal inputs + `Collect`/`Patch(colValueEntries)`
 with an **Edit form bound to `Value`** inside the modal card:
 
 1. In `conValueModalCard`, delete the manual inputs. Insert → **Edit
-   form** `frmValue`, `DataSource = 'Value'`, `Columns = 1`, Width
+   form** `frmValue`, `DataSource = Values`, `Columns = 1`, Width
    `Parent.Width - 56`.
 2. **Edit fields:** Project (lookup) · Fiscal Year · Fiscal Quarter
    (choice) · Month · Realized Value (currency) · Value Frequency · Value
@@ -284,11 +284,11 @@ From `srcList`, open a use case:
 |---|---|---|
 | `frmInfo` cards show old field names / errors | DataSource still `colUseCases` | Set `DataSource = Projects`; re-add fields via Edit fields. |
 | Status card shows a text box, not a label combo | You kept the old unlocked `ddStatus2` | Reset the card to default (re-add the `Project Status` field) — the form builds a Choices combo automatically; delete the `LookUp(colStatus,…)` wiring. |
-| Value gallery empty | `ucValueRows` still filters `colValueEntries`, or the lookup nav is wrong | Use `Filter('Value', Project.'Use Case ID' = selectedUC.'Use Case ID')` (Part 0). |
+| Value gallery empty | `ucValueRows` still filters `colValueEntries`, or the lookup nav is wrong | Use `Filter(Values, Project.'Use Case ID' = selectedUC.'Use Case ID')` (Part 0). |
 | New Value row not linked to the project | Project lookup card not set on insert | Set the Project card `Update = selectedUC` (or pre-select it) before `SubmitForm`. |
 | "Incompatible types" on a Value/Gov choice display | Showing a choice column without `Text(...)` | Wrap displays in `Text(...)`; compare choice-to-choice, never to a string. |
 | Stepper doesn't advance after Save | `OnSuccess` missing | `frmInfo.OnSuccess = Set(selectedUC, frmInfo.LastSubmit)`; see guide 13. |
-| `'Value'` table not recognized | Name collides with `Value()` or Studio renamed it | Quote as `'Value'`, or use the name shown under **Data**. |
+| `Values` table not recognized | Wrong name, or data source not added | Add the table via Data → Add data; reference it by the exact name shown under **Data** (here, `Values`). |
 
 ---
 
