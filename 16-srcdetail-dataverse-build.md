@@ -96,6 +96,17 @@ currentStatusIdx = Coalesce(LookUp(colStatus, DVStatus = Text(selectedUC.'Projec
 > drop `currentStatusIdx` here — only `ucValueRows` remains.
 
 ### SBU edit-picker list — **[OnVisible]** *(only if you use the SBU→LOB cascade in Step 2)*
+
+The **SBU edit picker** is the SBU dropdown (`ddSBU2`) inside the Use Case
+Info **Edit form** — the first half of the cascade that resolves the
+**Business Hierarchy** lookup. `colSBUEdit` is the list of choices it
+shows: the distinct Strategic Business Units from the Business Hierarchy
+table. (It's separate from srcList's *filter* SBU list `colSBUOptions`,
+which carries an extra **"All SBUs"** sentinel — an edit picker has no
+"All"; you must choose a real SBU.)
+
+It goes in **`srcDetail.OnVisible`** (that's where the form lives):
+
 ```powerfx
 // srcDetail.OnVisible
 If(IsEmpty(colSBUEdit),
@@ -103,9 +114,17 @@ If(IsEmpty(colSBUEdit),
 )
 ```
 *Why OnVisible:* it's a **Dataverse query** — keep it off app launch, and
-the `If(IsEmpty(...))` makes it run once per session. (If you use the
-form's auto lookup combo box instead of the cascade, you don't need this at
-all.)
+the `If(IsEmpty(...))` makes it run once per session. (`ddSBU2.Items =
+colSBUEdit`.)
+
+> **You may not need this at all.** If you use the form's **auto lookup
+> combo box** for Business Hierarchy (pick the `SBU/LOB` key directly),
+> there's no cascade and no `colSBUEdit` — skip OnVisible entirely. And
+> even with the cascade you can drop the collection and put
+> `Distinct('Business Hierarchy', 'Strategic Business Unit')` **inline** on
+> `ddSBU2.Items`; the OnVisible collection is only a load-once
+> optimization. Either way, the **LOB** dropdown (`ddLOB2.Items`) stays
+> **[Inline]** because it depends on the selected SBU.
 
 ---
 
