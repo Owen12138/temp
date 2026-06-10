@@ -323,6 +323,9 @@ Notes:
   state flags when the open tab has unsaved edits). Don't try to
   `SubmitForm` all tabs from one button; if you ever need a single
   save-everything, use one combined form or `Patch`, not many `SubmitForm`s.
+  To stop users from *accidentally* losing edits when they switch tabs, add
+  the **unsaved-changes guard** (Save / Discard / Cancel popup) from
+  [`18-srcdetail-unsaved-guard.md`](18-srcdetail-unsaved-guard.md).
 - *Semantic note:* here **Submit Assessment is the save** (it writes the
   open section to Dataverse). If you later want a separate "finalize the
   whole intake" action (lock it / set a submitted status / trigger the

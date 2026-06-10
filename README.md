@@ -85,6 +85,9 @@ and tuning its layout:
 - **`17-srcdetail-info-tab-dataverse.md`** — the **fully-specified**
   Use Case Info tab on Dataverse: every position/dimension for the title,
   stepper, and `frmInfo` Edit form (all 8 fields, card-by-card, Save/Cancel).
+- **`18-srcdetail-unsaved-guard.md`** — keep per-tab forms but warn on
+  navigating away with unsaved edits: a Save / Discard / Cancel popup, the
+  guarded nav buttons, and the `OnSuccess` navigate-after-save wiring.
 
 ## Order to ship
 
