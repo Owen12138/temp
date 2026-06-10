@@ -274,45 +274,39 @@ If you'd rather pick **SBU then LOB** than the combined `SBU/LOB` key:
 
 ---
 
-## Step 10 — Save / Cancel buttons
+## Step 10 — Saving: use the action bar (one save point, not three)
 
-Below the form, inside `conSectionInfo`, Insert → **Button** twice:
+> **Don't add per-section Save/Cancel buttons here.** With the per-section
+> Edit-form model you'd otherwise have save controls in three places — the
+> top **action bar** (`btnSaveDraft` + `btnSubmit`), the empty bottom
+> **`conSubmitZone`**, and inside each section. Keep exactly **one**.
+> Recommended: the **action bar** (already built, always visible).
 
-**`btnSaveInfo`:**
+**Delete `conSubmitZone`** (the empty 60-px bottom strip from `08` Step
+15 — it was scaffolding for an older single-submit design). Then give back
+its reserved space: wherever the content/section height subtracted `60`
+for it, drop the `- 60` (e.g. `conSectionInfo.Height = Parent.Height - 48`).
 
-| Property | Value |
-|----------|-------|
-| Text | `"Save"` |
-| X | `28` |
-| Y | `frmInfo.Y + frmInfo.Height + 12` |
-| Width | `120` |
-| Height | `36` |
-| FontWeight | `FontWeight.Semibold` |
-| Fill | `gblTheme.Maroon` |
-| HoverFill | `gblTheme.MaroonDeep` |
-| Color | `White` |
-| BorderThickness | `0` |
-| RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| DisplayMode | `If(frmInfo.Unsaved, DisplayMode.Edit, DisplayMode.Disabled)` |
-| OnSelect | `SubmitForm(frmInfo)` |
-
-**`btnCancelInfo`:**
+Wire the action bar's **Save Draft** (`btnSaveDraft`) to save the
+currently-visible section's form:
 
 | Property | Value |
 |----------|-------|
-| Text | `"Cancel"` |
-| X | `btnSaveInfo.X + btnSaveInfo.Width + 12` |
-| Y | `btnSaveInfo.Y` |
-| Width | `120` |
-| Height | `36` |
-| FontWeight | `FontWeight.Semibold` |
-| Fill | `gblTheme.Surface` |
-| HoverFill | `RGBA(245, 230, 233, 1)` |
-| Color | `gblTheme.Ink` |
-| BorderColor | `gblTheme.Border` |
-| BorderThickness | `1` |
-| RadiusTopLeft / TopRight / BottomLeft / BottomRight | `4` |
-| OnSelect | `ResetForm(frmInfo)` |
+| OnSelect | `Switch(currentSection, "Info", SubmitForm(frmInfo) /* , "Contacts", SubmitForm(frmContacts), … add branches as you build each section */ )` |
+| DisplayMode | `If(Switch(currentSection, "Info", frmInfo.Unsaved, false), DisplayMode.Edit, DisplayMode.Disabled)` |
+
+Add a `Switch` branch per section **only once that section's form exists**
+(a branch referencing a non-existent `frm…` errors). A **Cancel/Discard**
+button can mirror it with `ResetForm(...)`.
+
+**Submit Assessment** (`btnSubmit`) is **not** a field save — it's the
+finalize/workflow action (set status / trigger the `BOA_SubmitAssessment`
+flow, README v3). Leave it as a stub or hide it until that flow exists, so
+it isn't confused with saving.
+
+> Prefer Save *inside* each section instead? That's fine too — then remove
+> the action bar's **Save Draft** *and* `conSubmitZone`. The rule is just:
+> one save mechanism.
 
 ## Step 11 — Form behavior (`frmInfo`)
 
@@ -339,9 +333,10 @@ From `srcList`, open a use case:
       Type, Status, Business Hierarchy, Est. Completion, Refresh sit in two
       columns.
 - [ ] Status/Type/Refresh show **labels** in a combo box (not codes).
-- [ ] **Save** is disabled until you edit a field; editing enables it.
-- [ ] Change Status → **Save** → row saves to Dataverse and the **stepper
-      advances**; **Cancel** reverts unsaved edits.
+- [ ] The action bar's **Save Draft** is disabled until you edit a field;
+      editing enables it (no per-section Save buttons; no bottom submit zone).
+- [ ] Change Status → **Save Draft** → row saves to Dataverse and the
+      **stepper advances**.
 - [ ] Toggle the rail — both form columns reflow; no card clips.
 
 > Stepper didn't move after Save? Confirm `frmInfo.OnSuccess =

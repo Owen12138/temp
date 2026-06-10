@@ -164,8 +164,12 @@ Edit form. Repeat this recipe in each `conSection*`:
    `Item = selectedUC`, `DefaultMode = FormMode.Edit`, `Columns = 2`,
    Width `Parent.Width - 56`.
 3. **Edit fields** → add that section's columns (lists below).
-4. Add a **Save** (`SubmitForm(frm…)`) and **Cancel** (`ResetForm(frm…)`),
-   and on the form `OnSuccess = Set(selectedUC, frm….LastSubmit)`.
+4. Keep `OnSuccess = Set(selectedUC, frm….LastSubmit)` on each form. For
+   **saving**, use **one** mechanism — recommended: wire the action bar's
+   **Save Draft** to `SubmitForm` the visible section's form via a `Switch`
+   on `currentSection`, and **delete `conSubmitZone`** (see
+   [`17` Step 10](17-srcdetail-info-tab-dataverse.md)). Don't add a Save
+   button to every section *and* keep the action bar / submit zone.
 
 Choice/URL/date columns auto-generate the correct control — leave them.
 People fields are plain text (no user table).
