@@ -274,39 +274,51 @@ If you'd rather pick **SBU then LOB** than the combined `SBU/LOB` key:
 
 ---
 
-## Step 10 — Saving: use the action bar (one save point, not three)
+## Step 10 — Saving: Submit Assessment + Discard Changes (action bar)
 
-> **Don't add per-section Save/Cancel buttons here.** With the per-section
-> Edit-form model you'd otherwise have save controls in three places — the
-> top **action bar** (`btnSaveDraft` + `btnSubmit`), the empty bottom
-> **`conSubmitZone`**, and inside each section. Keep exactly **one**.
-> Recommended: the **action bar** (already built, always visible).
+One save mechanism, in the action bar — **no per-section Save buttons, and
+no bottom submit zone.**
 
 **Delete `conSubmitZone`** (the empty 60-px bottom strip from `08` Step
-15 — it was scaffolding for an older single-submit design). Then give back
-its reserved space: wherever the content/section height subtracted `60`
-for it, drop the `- 60` (e.g. `conSectionInfo.Height = Parent.Height - 48`).
+15 — scaffolding for an older single-submit design). Give back its space:
+wherever a height subtracted `60` for it, drop the `- 60` (e.g.
+`conSectionInfo.Height = Parent.Height - 48`).
 
-Wire the action bar's **Save Draft** (`btnSaveDraft`) to save the
-currently-visible section's form:
+You already have two action-bar buttons. Repurpose them so they act on the
+**currently-visible section's form**:
+
+**`btnSubmit` — "Submit Assessment"** — commits the open section's edits to
+Dataverse:
 
 | Property | Value |
 |----------|-------|
-| OnSelect | `Switch(currentSection, "Info", SubmitForm(frmInfo) /* , "Contacts", SubmitForm(frmContacts), … add branches as you build each section */ )` |
+| Text | `"Submit Assessment"` |
+| OnSelect | `Switch(currentSection, "Info", SubmitForm(frmInfo) /* , "Contacts", SubmitForm(frmContacts), … add a branch per section as you build it */ )` |
 | DisplayMode | `If(Switch(currentSection, "Info", frmInfo.Unsaved, false), DisplayMode.Edit, DisplayMode.Disabled)` |
 
-Add a `Switch` branch per section **only once that section's form exists**
-(a branch referencing a non-existent `frm…` errors). A **Cancel/Discard**
-button can mirror it with `ResetForm(...)`.
+**`btnSaveDraft` → rename to `btnDiscard`, Text "Discard Changes"** —
+reverts unsaved edits in the open section's form:
 
-**Submit Assessment** (`btnSubmit`) is **not** a field save — it's the
-finalize/workflow action (set status / trigger the `BOA_SubmitAssessment`
-flow, README v3). Leave it as a stub or hide it until that flow exists, so
-it isn't confused with saving.
+| Property | Value |
+|----------|-------|
+| Text | `"Discard Changes"` |
+| OnSelect | `Switch(currentSection, "Info", ResetForm(frmInfo) /* , per section as built */ )` |
+| DisplayMode | `If(Switch(currentSection, "Info", frmInfo.Unsaved, false), DisplayMode.Edit, DisplayMode.Disabled)` |
 
-> Prefer Save *inside* each section instead? That's fine too — then remove
-> the action bar's **Save Draft** *and* `conSubmitZone`. The rule is just:
-> one save mechanism.
+Notes:
+
+- **Add a `Switch` branch per section only once that section's form
+  exists** — a branch referencing a non-existent `frm…` errors. For now
+  (Info only), each is just the single `"Info"` branch.
+- **Discard only reverts *unsaved* edits** (changes since the last Submit /
+  since the record loaded). It can't undo a Submit that already wrote to
+  Dataverse.
+- Both buttons disable when there's nothing pending (`…Unsaved = false`).
+- *Semantic note:* here **Submit Assessment is the save** (it writes the
+  open section to Dataverse). If you later want a separate "finalize the
+  whole intake" action (lock it / set a submitted status / trigger the
+  `BOA_SubmitAssessment` flow, README v3), that's an additional action on
+  top of this — not the same button.
 
 ## Step 11 — Form behavior (`frmInfo`)
 
@@ -333,10 +345,13 @@ From `srcList`, open a use case:
       Type, Status, Business Hierarchy, Est. Completion, Refresh sit in two
       columns.
 - [ ] Status/Type/Refresh show **labels** in a combo box (not codes).
-- [ ] The action bar's **Save Draft** is disabled until you edit a field;
-      editing enables it (no per-section Save buttons; no bottom submit zone).
-- [ ] Change Status → **Save Draft** → row saves to Dataverse and the
+- [ ] The action bar's **Submit Assessment** and **Discard Changes** are
+      disabled until you edit a field; editing enables both. (No per-section
+      Save buttons; no bottom submit zone.)
+- [ ] Change Status → **Submit Assessment** → row saves to Dataverse and the
       **stepper advances**.
+- [ ] Edit a field → **Discard Changes** → the field reverts to its saved
+      value (only unsaved edits are discarded).
 - [ ] Toggle the rail — both form columns reflow; no card clips.
 
 > Stepper didn't move after Save? Confirm `frmInfo.OnSuccess =
