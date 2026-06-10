@@ -314,6 +314,15 @@ Notes:
   since the record loaded). It can't undo a Submit that already wrote to
   Dataverse.
 - Both buttons disable when there's nothing pending (`…Unsaved = false`).
+- **Scope — it saves only the OPEN tab, on purpose.** The `Switch` runs the
+  one branch for `currentSection`, so Submit writes only the visible
+  section's form. This is intentional and *safer* than submitting every
+  form: a form on a tab you've **never opened** may not have rendered/loaded
+  its values yet, and submitting it could write blanks and **wipe data**.
+  So **save as you go** — Submit each tab before leaving it (the enabled
+  state flags when the open tab has unsaved edits). Don't try to
+  `SubmitForm` all tabs from one button; if you ever need a single
+  save-everything, use one combined form or `Patch`, not many `SubmitForm`s.
 - *Semantic note:* here **Submit Assessment is the save** (it writes the
   open section to Dataverse). If you later want a separate "finalize the
   whole intake" action (lock it / set a submitted status / trigger the
