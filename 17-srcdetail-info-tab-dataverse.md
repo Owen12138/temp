@@ -248,6 +248,30 @@ If you'd rather pick **SBU then LOB** than the combined `SBU/LOB` key:
           && 'Line of Business' = ddLOB2.Selected.Value)
    ```
 
+> **How this `Update` works (and why it's a record, not text).** This card
+> is bound to the **Business Hierarchy lookup** column. On `SubmitForm`, the
+> form writes the card's `Update` value into that lookup — and a lookup
+> column requires a **record from the related table**, not text. Your two
+> dropdowns only hold text (`"Capital Markets"`, `"Equities"`), so neither
+> one *is* the value; the `LookUp(...)` **reassembles the actual Business
+> Hierarchy row** from the SBU + LOB pair, and that row is what gets saved.
+> `Update` is evaluated at save time, so it always reads the current
+> selections — no extra variable needed.
+>
+> **If `Update` shows a red error:**
+> 1. It likely still references the **deleted** `DataCardValue` (e.g.
+>    `DataCardValue.Selected`). Replace the whole property with the
+>    `LookUp(...)` above.
+> 2. **`'Business Hierarchy'` must be an added data source** (Data → Add
+>    data) for `LookUp('Business Hierarchy', …)` to resolve. (If your
+>    dropdowns already show real SBU/LOB values, it is.)
+> 3. Confirm the column names `'Strategic Business Unit'` /
+>    `'Line of Business'` via IntelliSense.
+>
+> Quick test: a temporary label set to
+> `LookUp('Business Hierarchy', 'Strategic Business Unit' = ddSBU2.Selected.Value && 'Line of Business' = ddLOB2.Selected.Value).'Business Hierarchy Key'`
+> should show the `SBU/LOB` key — then `Update` resolves too.
+
 ---
 
 ## Step 10 — Save / Cancel buttons
