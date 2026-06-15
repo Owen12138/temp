@@ -215,11 +215,14 @@ a card in the **Tree view** (left panel) to see them:
    | Y | `(Parent.Height - Self.Height) / 2` |
    | Width | `50` |
    | Height | `20` |
-   | FillSelected | `gblTheme.Maroon` |
-   | Default | `selectedUC.'Code Review'` |
+   | TrueFill | `gblTheme.Maroon` |
+   | FalseFill | `gblTheme.BorderStrong` |
+   | HandleFill | `White` |
+   | Default | `If(selectedUC.'Code Review' = "Yes", true, false)` |
 7. Select `cardCodeReview` again → set its **Update** property to
-   `tglCodeReview.Value`. *(This clears the red error that appeared when you
-   deleted the combo box in step 5.)*
+   `If(tglCodeReview.Value, "Yes", "No")`. *(This clears the red error that
+   appeared when you deleted the combo box in step 5, and writes the value
+   back in the "Yes"/"No" form the column stores.)*
 8. **Do not touch** `StarVisible…` or `ErrorMessage…` in this card.
 
 ---
@@ -257,10 +260,12 @@ a card in the **Tree view** (left panel) to see them:
    | Y | `(Parent.Height - Self.Height) / 2` |
    | Width | `50` |
    | Height | `20` |
-   | FillSelected | `gblTheme.Maroon` |
-   | Default | `selectedUC.'Algorithm Review Completed'` |
+   | TrueFill | `gblTheme.Maroon` |
+   | FalseFill | `gblTheme.BorderStrong` |
+   | HandleFill | `White` |
+   | Default | `If(selectedUC.'Algorithm Review Completed' = "Yes", true, false)` |
 7. Select `cardAlgoReview` again → set its **Update** property to
-   `tglAlgoReview.Value`.
+   `If(tglAlgoReview.Value, "Yes", "No")`.
 8. **Do not touch** `StarVisible…` or `ErrorMessage…` in this card.
 
 ---
@@ -299,10 +304,12 @@ a card in the **Tree view** (left panel) to see them:
    | Y | `(Parent.Height - Self.Height) / 2` |
    | Width | `50` |
    | Height | `20` |
-   | FillSelected | `gblTheme.Maroon` |
-   | Default | `selectedUC.'Standard Folder Structure Compliant'` |
+   | TrueFill | `gblTheme.Maroon` |
+   | FalseFill | `gblTheme.BorderStrong` |
+   | HandleFill | `White` |
+   | Default | `If(selectedUC.'Standard Folder Structure Compliant' = "Yes", true, false)` |
 7. Select `cardFolderStructure` again → set its **Update** property to
-   `tglFolderStructure.Value`.
+   `If(tglFolderStructure.Value, "Yes", "No")`.
 8. **Do not touch** `StarVisible…` or `ErrorMessage…` in this card.
 
 ---
@@ -340,19 +347,27 @@ a card in the **Tree view** (left panel) to see them:
    | Y | `(Parent.Height - Self.Height) / 2` |
    | Width | `50` |
    | Height | `20` |
-   | FillSelected | `gblTheme.Maroon` |
-   | Default | `selectedUC.'Model Monitoring'` |
+   | TrueFill | `gblTheme.Maroon` |
+   | FalseFill | `gblTheme.BorderStrong` |
+   | HandleFill | `White` |
+   | Default | `If(selectedUC.'Model Monitoring' = "Yes", true, false)` |
 7. Select `cardModelMonitoring` again → set its **Update** property to
-   `tglModelMonitoring.Value`.
+   `If(tglModelMonitoring.Value, "Yes", "No")`.
 8. **Do not touch** `StarVisible…` or `ErrorMessage…` in this card.
 
-> **Why `Default = selectedUC.'<column>'` and not `Parent.Default`.** A
-> Dataverse Yes/No column is a Boolean on the record, but the data card
-> renders it as a two-option **choice** (the combo box). So `Parent.Default`
-> is a choice record, not `true`/`false`, and a Toggle's `Default` rejects
-> it. `selectedUC.'<column>'` reads the **raw boolean off the record**, which
-> the toggle takes. If Studio shows a red type error on `Default`, the column
-> is actually a **Choice**, not a Yes/No — fix the column type in Dataverse.
+> **Why the `If(... = "Yes", true, false)` wrapper, and `TrueFill` not
+> `FillSelected`.** Two Dataverse/Toggle quirks this handles:
+>
+> 1. **The column value is `"Yes"`/`"No"`, not a real Boolean.** Dataverse
+>    surfaces this column's value as the text `"Yes"`/`"No"`, but a Toggle's
+>    `Default` only accepts `true`/`false`. So we **read** with
+>    `If(selectedUC.'<column>' = "Yes", true, false)` (text → boolean) and
+>    **write** the card's `Update` with `If(<toggle>.Value, "Yes", "No")`
+>    (boolean → text), so the value round-trips in the form the column stores.
+> 2. **The classic Toggle has no `FillSelected`.** Its colour properties are
+>    `TrueFill` (the on / right state), `FalseFill` (off / left), `HandleFill`
+>    (the knob), plus `TrueHoverFill` / `FalseHoverFill`. So the maroon
+>    "on" colour goes on **`TrueFill`**, not `FillSelected`.
 
 ---
 
@@ -458,10 +473,15 @@ From `srcList`, open a use case → **Technical Review**:
 
 **If something's wrong:**
 
-- **Toggle won't save** → the card's `Update` doesn't read its toggle's
-  `.Value`. Re-check e.g. `cardCodeReview.Update = tglCodeReview.Value`.
-- **Toggle always off / red error on `Default`** → you bound it to
-  `Parent.Default` (a choice record). Use `selectedUC.'<column>'`.
+- **Toggle won't save** → the card's `Update` isn't writing the toggle. It
+  must be `If(<toggle>.Value, "Yes", "No")`, e.g.
+  `cardCodeReview.Update = If(tglCodeReview.Value, "Yes", "No")`.
+- **Toggle always off / red error on `Default`** → the value is `"Yes"`/`"No"`
+  text, not a Boolean. `Default` must be
+  `If(selectedUC.'<column>' = "Yes", true, false)`, and the card `Update` must
+  be `If(<toggle>.Value, "Yes", "No")`.
+- **Toggle's "on" colour won't set** → there is no `FillSelected` on the
+  classic Toggle. Set **`TrueFill`** (= `gblTheme.Maroon`) for the on state.
 - **Still a combo box** → you didn't delete `DataCardValue…` and insert a
   Toggle (Steps 5–8, step 5–6). Yes/No cards never auto-generate a toggle.
 - **Card shows a red error after deleting the combo box** → you haven't set
