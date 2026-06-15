@@ -22,6 +22,21 @@ form** (`frmTech`) so it saves through the same action-bar **Submit
 Assessment / Discard Changes** mechanism as the Info tab — see
 [guide 17](17-srcdetail-info-tab-dataverse.md) Step 10.
 
+> **Every control name is fixed in this guide — don't invent your own.** When
+> a step says rename a card/label/toggle, use the **exact** name given so the
+> formulas in later steps resolve. The full name list:
+>
+> | Thing | Name |
+> |---|---|
+> | Section container | `conSectionTech` |
+> | Title label / underline | `lblTechTitle` / `recTechTitleBorder` |
+> | Edit form | `frmTech` |
+> | Card 1 — Code Review | card `cardCodeReview`, label `lblCodeReview`, toggle `tglCodeReview` |
+> | Card 2 — Algorithm Review | card `cardAlgoReview`, label `lblAlgoReview`, toggle `tglAlgoReview` |
+> | Card 3 — Folder Structure | card `cardFolderStructure`, label `lblFolderStructure`, toggle `tglFolderStructure` |
+> | Card 4 — Model Monitoring | card `cardModelMonitoring`, label `lblModelMonitoring`, toggle `tglModelMonitoring` |
+> | Card 5 — Performance Metrics | card `cardPerfMetrics`, label `lblPerfMetrics`, input `txtPerfMetrics` |
+
 **Prerequisites** (already covered elsewhere):
 - `Projects` added as a data source.
 - `selectedUC` is a `Projects` record; `App.OnStart` seeds
@@ -34,36 +49,38 @@ Assessment / Discard Changes** mechanism as the Info tab — see
 
 ---
 
-## Step 0 — Confirm the four columns are Yes/No
+## Step 0 — Create / confirm the four Yes/No columns
 
-These toggles bind to four `Projects` columns from
-[the schema §2.5](09-dataverse-schema.md#25-governance--model--review).
-Each is a **Yes/No (boolean / Two Options)** column in Dataverse:
+These toggles bind to four `Projects` columns. Each **must be a Yes/No
+(boolean) column** in Dataverse with the **exact display name** below:
 
-| Tile label (UI) | `Projects` column | Type |
+| Tile label (UI) | `Projects` column (exact display name) | Type |
 |---|---|---|
 | Code Review | `Code Review` | Yes/No |
 | Algorithm Review | `Algorithm Review Completed` | Yes/No |
-| Folder Structure adheres to standards | `Standard Folder Structure` | **see note** |
+| Folder Structure adheres to standards | `Standard Folder Structure Compliant` | Yes/No |
 | Model Monitoring in place | `Model Monitoring` | Yes/No |
-| Performance Metrics (text box) | `AI Solution Performance` | Multiline |
+| Performance Metrics (text box) | `AI Solution Performance` | Multiline text |
 
-> **⚠ Folder Structure — confirm the column type first.** In the schema
-> `Standard Folder Structure` is tentatively a **URL** ("link to / flag for
-> the standard folder structure", marked †). A toggle needs a **Yes/No**
-> column. Pick one before building this card:
-> - **Recommended:** add a Yes/No column `Standard Folder Structure Compliant`
->   (or change `Standard Folder Structure` to Yes/No if no one stores a URL),
->   and bind the toggle to that. Use the name in the table below.
-> - **Keep the URL:** then this isn't a toggle — drop the tile and put a URL
->   text input here instead. The other three tiles stay as toggles.
->
-> The rest of this guide assumes a Yes/No column named
-> `Standard Folder Structure Compliant`. Substitute your final name.
+**Do this now, before building anything:**
 
-If any of the four shows as **Choice** or **Text** in Dataverse instead of
-Yes/No, fix it there first — a toggle card only auto-generates for a Yes/No
-column.
+1. Open the `Projects` table in Dataverse.
+2. `Code Review`, `Algorithm Review Completed`, `Model Monitoring`,
+   `AI Solution Performance` already exist from the schema
+   ([§2.5](09-dataverse-schema.md#25-governance--model--review)). Confirm the
+   first three are type **Yes/No** and the last is **Multiple lines of text**.
+   If any Yes/No one shows as Choice or Text, change it to Yes/No here first.
+3. **Create the folder-structure column.** The schema's
+   `Standard Folder Structure` is a **URL** field (a link, not a flag) — leave
+   it as-is. Add a **new** column: **New column → Display name
+   `Standard Folder Structure Compliant`, Data type Yes/No → Save**. This is
+   the column the toggle binds to. (Accept whatever schema name Dataverse
+   auto-assigns, e.g. `cr_standardfolderstructurecompliant`; the form uses the
+   display name.)
+
+Don't proceed until all four Yes/No columns exist with these exact names — a
+toggle card only generates for a Yes/No column, and later formulas reference
+these names literally.
 
 ---
 
@@ -127,7 +144,7 @@ this order** (order = layout order with Snap to columns on):
 
 1. `Code Review`
 2. `Algorithm Review Completed`
-3. `Standard Folder Structure Compliant`  *(your Yes/No name from Step 0)*
+3. `Standard Folder Structure Compliant`
 4. `Model Monitoring`
 5. `AI Solution Performance`
 
@@ -142,54 +159,65 @@ Remove any other auto-added cards.
 > Multiline `AI Solution Performance` card *does* generate the right control
 > — a multi-line Text input — so leave card 5 alone.)
 
-## Step 4 — Card-by-card spec
+## Step 4 — Rename the five cards, then spec each
 
-For each card: select it, set **DataCardWidth** / **Height**, then unlock
-(gear → **Advanced → Unlock**) only where you need to reposition the inner
-controls. The four toggle cards share one recipe (4a); the text card is 4b.
+When you added the fields, Studio created five cards with auto names like
+`Code Review_DataCard1`. **Rename each card** (double-click its name in the
+left tree → type the new name) to the fixed names below. Do the same for
+each card's inner label and value control as you reach it in 4a/4b.
 
-| # | Card (field) | DataCardWidth | Height | Inner control | Card `Update` |
-|---|---|---|---|---|---|
-| 1 | Code Review | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
-| 2 | Algorithm Review Completed | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
-| 3 | Standard Folder Structure Compliant | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
-| 4 | Model Monitoring | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
-| 5 | AI Solution Performance | `frmTech.Width` (full) | `150` | Text input → `Mode = TextMode.MultiLine` (4b) | *(default)* |
+| # | Field (column) | Rename card to | DataCardWidth | Height | Inner value control | Card `Update` |
+|---|---|---|---|---|---|---|
+| 1 | Code Review | `cardCodeReview` | `frmTech.Width / 2` | `64` | swap → toggle `tglCodeReview` (4a) | `tglCodeReview.Value` |
+| 2 | Algorithm Review Completed | `cardAlgoReview` | `frmTech.Width / 2` | `64` | swap → toggle `tglAlgoReview` (4a) | `tglAlgoReview.Value` |
+| 3 | Standard Folder Structure Compliant | `cardFolderStructure` | `frmTech.Width / 2` | `64` | swap → toggle `tglFolderStructure` (4a) | `tglFolderStructure.Value` |
+| 4 | Model Monitoring | `cardModelMonitoring` | `frmTech.Width / 2` | `64` | swap → toggle `tglModelMonitoring` (4a) | `tglModelMonitoring.Value` |
+| 5 | AI Solution Performance | `cardPerfMetrics` | `frmTech.Width` (full) | `150` | text input `txtPerfMetrics`, `Mode = TextMode.MultiLine` (4b) | *(default)* |
 
-> Cards 1–4 arrive as Yes/No **combo boxes**; Step 4a replaces each with a
-> Toggle and repoints the card `Update` at it. Use whatever name Studio gives
-> the Toggle you insert (`Toggle1`, …) — confirm via IntelliSense; don't
-> assume a suffix. Card 5 keeps its default control and `Update`.
+Cards 1–4 arrive as Yes/No **combo boxes**; 4a deletes each combo box,
+inserts the named Toggle, and points the card `Update` at it. Card 5 keeps
+its default text input (just rename it) and default `Update`.
+
+To unlock a card before editing its inner controls: select it → right pane
+**Advanced → Unlock**.
 
 ### 4a — Swap the combo box for a Toggle, then tile it (cards 1–4)
 
-The card arrives with a **Yes/No combo box** stacked under the label. We
-replace it with a Toggle and lay the tile out as **label left, toggle right,
-vertically centred**, with a thin border and no subtext.
+Each card arrives with a **Yes/No combo box** stacked under the label. Run
+these **exact steps on each of the four cards**, substituting that card's
+names from this table:
 
-**First, swap the control:**
+| Card | Card name | Label name | Toggle name | Label `Text` |
+|---|---|---|---|---|
+| 1 | `cardCodeReview` | `lblCodeReview` | `tglCodeReview` | `"Code Review"` |
+| 2 | `cardAlgoReview` | `lblAlgoReview` | `tglAlgoReview` | `"Algorithm Review"` |
+| 3 | `cardFolderStructure` | `lblFolderStructure` | `tglFolderStructure` | `"Folder Structure adheres to standards"` |
+| 4 | `cardModelMonitoring` | `lblModelMonitoring` | `tglModelMonitoring` | `"Model Monitoring in place"` |
 
-1. Select the card (e.g. `Code Review_DataCard`) → unlock it (right pane
-   **lock icon**, or **Advanced → Unlock**).
-2. Select the inner combo box (`DataCardValue…`) and **delete it**.
-3. Insert → **Input → Toggle** (classic Toggle) into the card; style/position
-   it per the **Toggle** table below.
-4. Set the **card's `Update`** to the new toggle's value (the card still
-   points at the deleted combo box until you do — red error otherwise):
-   `Update = <yourToggleName>.Value`.
+**Steps (using card 1 `cardCodeReview` as the worked example):**
 
-Then style the card, label, and toggle:
+1. Select `cardCodeReview` → **Advanced → Unlock**.
+2. Set the card's tile look: `BorderThickness = 1`,
+   `BorderColor = gblTheme.Border`, `Fill = White`.
+3. Select the inner **label** (auto-named `DataCardKey…`) → **rename it to
+   `lblCodeReview`** → set its properties from the **Label** table below
+   (including `Text = "Code Review"`).
+4. Select the inner **combo box** (auto-named `DataCardValue…`) and
+   **delete it**.
+5. **Insert → Input → Toggle** (classic Toggle). It lands in the card.
+   **Rename it to `tglCodeReview`** → set its properties from the **Toggle**
+   table below.
+6. Select `cardCodeReview` again → set its **`Update`** property to
+   `tglCodeReview.Value`. (Until you do, the card still references the deleted
+   combo box and shows a red error.)
+7. Select the card's **error message label** (auto-named `ErrorMessage…` at
+   the bottom) → set `Height = 0` and `Visible = false` — a Yes/No has
+   nothing to validate.
 
-**Card (the `…_DataCard`) — make it a tile:**
+Repeat 1–7 for `cardAlgoReview`, `cardFolderStructure`, `cardModelMonitoring`
+using their row from the table above.
 
-| Property | Value |
-|----------|-------|
-| BorderThickness | `1` |
-| BorderColor | `gblTheme.Border` |
-| Fill | `White` |
-| BorderRadius | `3` *(if available on the card; else ignore)* |
-
-**Label (`DataCardKey` — the field title), set:**
+**Label** (e.g. `lblCodeReview`) — set:
 
 | Property | Value |
 |----------|-------|
@@ -199,15 +227,9 @@ Then style the card, label, and toggle:
 | Size | `13` |
 | Color | `gblTheme.Ink` |
 | Font | `gblTheme.FontFamily` |
-| Text | `"Code Review"` *(card 1; see label overrides below)* |
+| Text | the card's `Text` from the table above |
 
-> **Label text overrides.** The `DataCardKey` defaults to the Dataverse
-> display name. To match the mockup wording, set `Text` per card:
-> card 1 `"Code Review"`, card 2 `"Algorithm Review"`,
-> card 3 `"Folder Structure adheres to standards"`,
-> card 4 `"Model Monitoring in place"`.
-
-**Toggle (the one you inserted), set:**
+**Toggle** (e.g. `tglCodeReview`) — set:
 
 | Property | Value |
 |----------|-------|
@@ -216,30 +238,24 @@ Then style the card, label, and toggle:
 | Width | `50` |
 | Height | `20` |
 | FillSelected | `gblTheme.Maroon` |
-| Default | `ThisItem.'Code Review'` *(the card's column — see per-card list)* |
+| Default | `Parent.Default` |
 
-> **Set `Default` yourself.** Because you deleted the auto-generated control
-> and inserted your own Toggle, it is **not** auto-bound. Point `Default` at
-> the card's column so the saved value loads in: card 1 `ThisItem.'Code Review'`,
-> card 2 `ThisItem.'Algorithm Review Completed'`, card 3
-> `ThisItem.'Standard Folder Structure Compliant'`, card 4
-> `ThisItem.'Model Monitoring'`. A Yes/No column returns a real boolean, so
-> no `If(... = "Yes")` is needed. And confirm the card's `Update` reads this
-> toggle's `.Value` (Step 4a swap, point 4).
+> **`Default = Parent.Default` for all four toggles** — identical formula on
+> every card. The card's own `Default` is auto-bound to its Yes/No column, so
+> `Parent.Default` is the saved boolean; no `If(... = "Yes")` needed. Don't
+> type the column name into the toggle — `Parent.Default` already resolves to
+> the right column per card.
 
-**Error message label** (auto-added at the card bottom): set
-`Height = 0` / `Visible = false` to reclaim the space — a Yes/No has nothing
-to validate.
+### 4b — Performance Metrics card (`cardPerfMetrics`)
 
-### 4b — Performance Metrics card (card 5)
+1. Select `cardPerfMetrics` → set `DataCardWidth = frmTech.Width` (full width,
+   so it drops to its own row) and `Height = 150`.
+2. Unlock it → select the inner label (`DataCardKey…`) → **rename to
+   `lblPerfMetrics`** → set `Text = "Performance Metrics"`.
+3. Select the inner text input (`DataCardValue…`) → **rename to
+   `txtPerfMetrics`** → set `Mode = TextMode.MultiLine`.
 
-| Property | Value |
-|----------|-------|
-| DataCardWidth | `frmTech.Width` (full width → own row) |
-| Height | `150` |
-| Inner `DataCardValue` | `Mode = TextMode.MultiLine` |
-
-Leave its `Update` at the default. Label sits on top (standard card),
+Leave the card's `Update` at its default. The label sits on top, the
 multiline input fills the rest.
 
 ---
@@ -294,14 +310,12 @@ Switch(currentSection,
 
 Use the **same `DisplayMode`** formula as `btnSubmit`.
 
-> **Why a form + the shared action bar (not 4 toggles + `Patch`).** The form
-> gives you `frmTech.Unsaved` (drives the button enable/disable for free),
-> an atomic write of all four flags + the metrics on one Submit, and
-> `ResetForm` for Discard. It also keeps **save-as-you-go** behavior
-> consistent: Submit writes only the **open** tab, which is safer than
-> submitting tabs the user never rendered (see guide 17 Step 10). If you'd
-> rather hand-place toggles, see the alternative below — but then you own the
-> `Patch`, the dirty-tracking, and the button wiring yourself.
+> **Why a form + the shared action bar.** The form gives you `frmTech.Unsaved`
+> (drives the button enable/disable for free), an atomic write of all four
+> flags + the metrics on one Submit, and `ResetForm` for Discard. It also
+> keeps **save-as-you-go** behavior consistent: Submit writes only the
+> **open** tab, which is safer than submitting tabs the user never rendered
+> (see guide 17 Step 10).
 
 ---
 
@@ -324,43 +338,9 @@ From `srcList`, open a use case → **Technical Review**:
 - [ ] Toggle the side rail — both form columns reflow; tiles stay 2-up and
       don't clip.
 
-> Toggle won't save? Confirm the card's `Update` reads **your inserted
-> toggle's** `.Value` (after the swap the card still points at the deleted
-> combo box until you fix it). Toggle always shows off? Its `Default` isn't
-> bound — set it to `ThisItem.'<column>'`. Still a combo box? You haven't
-> done the Step 4a swap — the Yes/No card never auto-generates a toggle.
-
----
-
-## Alternative — manual toggles + `Patch` (no form)
-
-If you don't want an Edit form, lay out four **Toggle** controls and one
-**Text input** by hand inside `conSectionTech`, then save with one `Patch`.
-You give up `frmTech.Unsaved`, so you also track "dirty" yourself.
-
-**Each toggle** (e.g. `tglCodeReview`):
-
-| Property | Value |
-|----------|-------|
-| Default | `selectedUC.'Code Review'` |
-| FillSelected | `gblTheme.Maroon` |
-| Width | `50` · Height `20` |
-
-Place each in a bordered container tile with a label (same 2×2 geometry as
-Step 4a). **Submit** (action-bar branch or a local button):
-
-```powerfx
-Patch(Projects, selectedUC, {
-    'Code Review': tglCodeReview.Value,
-    'Algorithm Review Completed': tglAlgoReview.Value,
-    'Standard Folder Structure Compliant': tglFolder.Value,
-    'Model Monitoring': tglMonitoring.Value,
-    'AI Solution Performance': txtPerfMetrics.Text
-});
-Set(selectedUC, LookUp(Projects, Project = selectedUC.Project))
-```
-
-**Discard:** reset each toggle's `Default`/the text by re-seeding from
-`selectedUC` (e.g. `Set(selectedUC, selectedUC)` forces the `Default`
-expressions to re-read). The form approach in Steps 2–6 avoids all of this —
-prefer it unless you have a specific reason not to.
+> Toggle won't save? Confirm the card's `Update` reads its toggle's `.Value`
+> (e.g. `cardCodeReview.Update = tglCodeReview.Value`) — after the swap the
+> card still points at the deleted combo box until you fix it. Toggle always
+> shows off? Its `Default` isn't `Parent.Default`. Still a combo box? You
+> haven't done the Step 4a swap — the Yes/No card never auto-generates a
+> toggle.
