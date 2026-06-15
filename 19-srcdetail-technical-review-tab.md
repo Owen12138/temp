@@ -238,13 +238,27 @@ using their row from the table above.
 | Width | `50` |
 | Height | `20` |
 | FillSelected | `gblTheme.Maroon` |
-| Default | `Parent.Default` |
+| Default | the record field for this card — from the table below |
 
-> **`Default = Parent.Default` for all four toggles** — identical formula on
-> every card. The card's own `Default` is auto-bound to its Yes/No column, so
-> `Parent.Default` is the saved boolean; no `If(... = "Yes")` needed. Don't
-> type the column name into the toggle — `Parent.Default` already resolves to
-> the right column per card.
+| Toggle | `Default` |
+|---|---|
+| `tglCodeReview` | `selectedUC.'Code Review'` |
+| `tglAlgoReview` | `selectedUC.'Algorithm Review Completed'` |
+| `tglFolderStructure` | `selectedUC.'Standard Folder Structure Compliant'` |
+| `tglModelMonitoring` | `selectedUC.'Model Monitoring'` |
+
+> **Read from `selectedUC`, NOT `Parent.Default`.** A Dataverse Yes/No column
+> is a Boolean on the record, but this data card renders it as a two-option
+> **choice** (that's why it generated a combo box). So `Parent.Default` — the
+> card's value — is a **choice record, not `true`/`false`**, and a Toggle's
+> `Default` only accepts a real Boolean; binding to `Parent.Default` fails.
+> `selectedUC.'<column>'` reads the **raw boolean straight off the record**,
+> which the toggle takes directly. (`selectedUC` is `frmTech.Item`, so Discard
+> /Submit still reset and refresh the toggle correctly.)
+>
+> If Studio shows a red type error on `Default` (meaning the column is truly a
+> two-option **Choice**, not a Yes/No boolean), fix the column to **Yes/No**
+> in Dataverse — don't work around it in the formula.
 
 ### 4b — Performance Metrics card (`cardPerfMetrics`)
 
@@ -341,6 +355,7 @@ From `srcList`, open a use case → **Technical Review**:
 > Toggle won't save? Confirm the card's `Update` reads its toggle's `.Value`
 > (e.g. `cardCodeReview.Update = tglCodeReview.Value`) — after the swap the
 > card still points at the deleted combo box until you fix it. Toggle always
-> shows off? Its `Default` isn't `Parent.Default`. Still a combo box? You
-> haven't done the Step 4a swap — the Yes/No card never auto-generates a
-> toggle.
+> shows off (or `Default` shows a type error)? You bound it to `Parent.Default`
+> (a choice record) instead of the record's raw boolean
+> `selectedUC.'<column>'`. Still a combo box? You haven't done the Step 4a
+> swap — the Yes/No card never auto-generates a toggle.
