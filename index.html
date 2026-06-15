@@ -1004,6 +1004,23 @@
   .toggle.on .tr::after { left: 18px; }
   .toggle-label { font-size: 13px; color: var(--ink-2); }
 
+  /* Yes/No toggles — two per line (2×2 grid), one cell per Dataverse Yes/No column */
+  .toggle-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer; user-select: none;
+  }
+  .toggle-row:hover { background: #FAFAFA; }
+  .toggle-row .toggle-label { font-size: 13px; color: var(--ink); }
+
   /* Final submit zone */
   .submit-zone {
     background: white;
@@ -1657,38 +1674,23 @@
       <!-- TECHNICAL REVIEW -->
       <section id="s-technical" class="section">
         <div class="section-head"><div class="section-title">Technical Review</div></div>
-        <div class="checklist">
-          <div class="check-item done">
-            <div class="check-box"></div>
-            <div>
-              <div class="check-name">Code Review</div>
-              <div class="check-meta">Completed by Tech Lead · 2026-04-22</div>
-            </div>
-            <button class="check-action">Completed</button>
+        <!-- Four Yes/No (Two Options) Dataverse columns, each bound to a Toggle control -->
+        <div class="toggle-list">
+          <div class="toggle-row toggle on">
+            <span class="toggle-label">Code Review</span>
+            <div class="tr"></div>
           </div>
-          <div class="check-item done">
-            <div class="check-box"></div>
-            <div>
-              <div class="check-name">Algorithm Review</div>
-              <div class="check-meta">Reviewed by Sr. DS</div>
-            </div>
-            <button class="check-action">Completed</button>
+          <div class="toggle-row toggle on">
+            <span class="toggle-label">Algorithm Review</span>
+            <div class="tr"></div>
           </div>
-          <div class="check-item done">
-            <div class="check-box"></div>
-            <div>
-              <div class="check-name">Folder Structure adheres to standards</div>
-              <div class="check-meta">Verified against AAI repo template v3.2</div>
-            </div>
-            <button class="check-action">Completed</button>
+          <div class="toggle-row toggle on">
+            <span class="toggle-label">Folder Structure adheres to standards</span>
+            <div class="tr"></div>
           </div>
-          <div class="check-item">
-            <div class="check-box"></div>
-            <div>
-              <div class="check-name">Model Monitoring in place</div>
-              <div class="check-meta">PSI + decile-rank dashboards pending</div>
-            </div>
-            <button class="check-action">Mark complete</button>
+          <div class="toggle-row toggle">
+            <span class="toggle-label">Model Monitoring in place</span>
+            <div class="tr"></div>
           </div>
         </div>
         <div class="field full" style="margin-top:16px;">

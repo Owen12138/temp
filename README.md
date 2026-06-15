@@ -88,6 +88,10 @@ and tuning its layout:
 - **`18-srcdetail-unsaved-guard.md`** — keep per-tab forms but warn on
   navigating away with unsaved edits: a Save / Discard / Cancel popup, the
   guarded nav buttons, and the `OnSuccess` navigate-after-save wiring.
+- **`19-srcdetail-technical-review-tab.md`** — the **fully-specified**
+  Technical Review tab on Dataverse: four Yes/No flags as plain toggles in a
+  2×2 grid plus the Performance Metrics text box, built as `frmTech` and
+  saved through the shared Submit/Discard action bar (card-by-card).
 
 ## Order to ship
 
