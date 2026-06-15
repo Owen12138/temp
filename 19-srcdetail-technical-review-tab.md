@@ -133,9 +133,14 @@ this order** (order = layout order with Snap to columns on):
 
 Remove any other auto-added cards.
 
-A Yes/No column auto-generates a **Toggle** as its `DataCardValue`; a
-Multiline column auto-generates a multi-line **Text input**. Don't replace
-either — the default `Update` is correct.
+> **Heads-up — the Yes/No cards come in as combo boxes, not toggles.**
+> On current Power Apps, a Dataverse **Yes/No (boolean)** column
+> auto-generates a **combo box** (a Yes / No dropdown) as its
+> `DataCardValue`, *not* a Toggle — even though the column is correctly typed
+> Yes/No in Dataverse. This is a Studio default, not a data problem. Step 4a
+> **swaps each combo box for a Toggle** to get the mockup look. (The
+> Multiline `AI Solution Performance` card *does* generate the right control
+> — a multi-line Text input — so leave card 5 alone.)
 
 ## Step 4 — Card-by-card spec
 
@@ -145,21 +150,35 @@ controls. The four toggle cards share one recipe (4a); the text card is 4b.
 
 | # | Card (field) | DataCardWidth | Height | Inner control | Card `Update` |
 |---|---|---|---|---|---|
-| 1 | Code Review | `frmTech.Width / 2` | `64` | Toggle (4a) | `DataCardValue1.Value` |
-| 2 | Algorithm Review Completed | `frmTech.Width / 2` | `64` | Toggle (4a) | `DataCardValue2.Value` |
-| 3 | Standard Folder Structure Compliant | `frmTech.Width / 2` | `64` | Toggle (4a) | `DataCardValue3.Value` |
-| 4 | Model Monitoring | `frmTech.Width / 2` | `64` | Toggle (4a) | `DataCardValue4.Value` |
+| 1 | Code Review | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
+| 2 | Algorithm Review Completed | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
+| 3 | Standard Folder Structure Compliant | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
+| 4 | Model Monitoring | `frmTech.Width / 2` | `64` | **Swap combo box → Toggle** (4a) | `<your toggle>.Value` |
 | 5 | AI Solution Performance | `frmTech.Width` (full) | `150` | Text input → `Mode = TextMode.MultiLine` (4b) | *(default)* |
 
-> Each card's `Update` is set to **its own** `DataCardValue` (the inner
-> toggle/input). The numbering (`DataCardValue1`…) is whatever Studio
-> assigned — confirm via IntelliSense; don't assume the suffixes.
+> Cards 1–4 arrive as Yes/No **combo boxes**; Step 4a replaces each with a
+> Toggle and repoints the card `Update` at it. Use whatever name Studio gives
+> the Toggle you insert (`Toggle1`, …) — confirm via IntelliSense; don't
+> assume a suffix. Card 5 keeps its default control and `Update`.
 
-### 4a — Toggle tile layout (do this for cards 1–4)
+### 4a — Swap the combo box for a Toggle, then tile it (cards 1–4)
 
-The card auto-stacks **label on top, toggle below**. We want the mockup's
-tile: a thin border, **label left, toggle right, vertically centred**, no
-subtext. Unlock the card, then:
+The card arrives with a **Yes/No combo box** stacked under the label. We
+replace it with a Toggle and lay the tile out as **label left, toggle right,
+vertically centred**, with a thin border and no subtext.
+
+**First, swap the control:**
+
+1. Select the card (e.g. `Code Review_DataCard`) → unlock it (right pane
+   **lock icon**, or **Advanced → Unlock**).
+2. Select the inner combo box (`DataCardValue…`) and **delete it**.
+3. Insert → **Input → Toggle** (classic Toggle) into the card; style/position
+   it per the **Toggle** table below.
+4. Set the **card's `Update`** to the new toggle's value (the card still
+   points at the deleted combo box until you do — red error otherwise):
+   `Update = <yourToggleName>.Value`.
+
+Then style the card, label, and toggle:
 
 **Card (the `…_DataCard`) — make it a tile:**
 
@@ -188,7 +207,7 @@ subtext. Unlock the card, then:
 > card 3 `"Folder Structure adheres to standards"`,
 > card 4 `"Model Monitoring in place"`.
 
-**Toggle (`DataCardValue`), set:**
+**Toggle (the one you inserted), set:**
 
 | Property | Value |
 |----------|-------|
@@ -197,11 +216,16 @@ subtext. Unlock the card, then:
 | Width | `50` |
 | Height | `20` |
 | FillSelected | `gblTheme.Maroon` |
-| Default | *(leave the form's binding — `ThisItem.'Code Review'` etc.)* |
+| Default | `ThisItem.'Code Review'` *(the card's column — see per-card list)* |
 
-> **Don't touch `Default`.** The form wrote it as `ThisItem.'<column>'` when
-> you added the field — that's what loads the saved value into the toggle.
-> Overwriting it breaks the bind. We only restyle/reposition the toggle.
+> **Set `Default` yourself.** Because you deleted the auto-generated control
+> and inserted your own Toggle, it is **not** auto-bound. Point `Default` at
+> the card's column so the saved value loads in: card 1 `ThisItem.'Code Review'`,
+> card 2 `ThisItem.'Algorithm Review Completed'`, card 3
+> `ThisItem.'Standard Folder Structure Compliant'`, card 4
+> `ThisItem.'Model Monitoring'`. A Yes/No column returns a real boolean, so
+> no `If(... = "Yes")` is needed. And confirm the card's `Update` reads this
+> toggle's `.Value` (Step 4a swap, point 4).
 
 **Error message label** (auto-added at the card bottom): set
 `Height = 0` / `Visible = false` to reclaim the space — a Yes/No has nothing
@@ -300,10 +324,11 @@ From `srcList`, open a use case → **Technical Review**:
 - [ ] Toggle the side rail — both form columns reflow; tiles stay 2-up and
       don't clip.
 
-> Toggle won't save? Confirm the column is **Yes/No** in Dataverse (Step 0)
-> and the card `Update` reads that card's own `DataCardValue.Value`. Toggle
-> always shows off? Its `Default` was overwritten — restore the form bind
-> `ThisItem.'<column>'`.
+> Toggle won't save? Confirm the card's `Update` reads **your inserted
+> toggle's** `.Value` (after the swap the card still points at the deleted
+> combo box until you fix it). Toggle always shows off? Its `Default` isn't
+> bound — set it to `ThisItem.'<column>'`. Still a combo box? You haven't
+> done the Step 4a swap — the Yes/No card never auto-generates a toggle.
 
 ---
 
